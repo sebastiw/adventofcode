@@ -912,18 +912,13 @@ How many passphrases are valid?
 
 #+NAME: passphrase
 #+BEGIN_SRC awk :stdin passphrase-input
-  BEGIN {
-      sum=0
-      err=0
-  }
   {
       sum++
-      split($0, p, " ")
       for(i=1; i<NF; i++)
       {
-          for(j=i+1; j<NF; j++)
+          for(j=i+1; j<=NF; j++)
           {
-              if(p[i] == p[j])
+              if($i == $j)
               {
                   err++
                   next
@@ -936,16 +931,63 @@ How many passphrases are valid?
   }
 #+END_SRC
 
-
 #+RESULTS: passphrase
-: 468
+: 466
 
 *** 4-2
 
-#+BEGIN_SRC awk :stdin maze-input
+For added security, yet another system policy has been put in
+place. Now, a valid passphrase must contain no two words that are
+anagrams of each other - that is, a passphrase is invalid if any
+word's letters can be rearranged to form any other word in the
+passphrase.
+
+For example:
+
+    abcde fghij is a valid passphrase.
+    abcde xyz ecdab is not valid - the letters from the third word can
+                                   be rearranged to form the first word.
+    a ab abc abd abf abj is a valid passphrase, because all letters
+                         need to be used when forming another word.
+    iiii oiii ooii oooi oooo is valid.
+    oiii ioii iioi iiio is not valid - any of these words can be
+                                       rearranged to form any other word.
+
+Under this new system policy, how many passphrases are valid?
+
+#+NAME: passphrase-anagrams
+#+BEGIN_SRC awk :stdin passphrase-input
   {
+      sum++
+      for(i=1; i<=NF; i++)
+      {
+          split($i, a, "")
+          asort(a)
+          w[i]=""
+          for(q=1; q<=length(a); q++)
+          {
+              w[i]=w[i] a[q]
+          }
+      }
+      for(i=1; i<NF; i++)
+      {
+          for(j=i+1; j<=NF; j++)
+          {
+              if(w[i] == w[j])
+              {
+                  err++
+                  next
+              }
+          }
+      }
+  }
+  END {
+      print sum-err
   }
 #+END_SRC
+
+#+RESULTS: passphrase-anagrams
+: 251
 
 ** Day 5: A Maze of Twisty Trampolines, All Alike
 
