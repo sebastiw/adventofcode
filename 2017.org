@@ -1,0 +1,2105 @@
+* http://adventofcode.com/2017/
+
+The night before Christmas, one of Santa's Elves calls you in a
+panic. "The printer's broken! We can't print the Naughty or Nice
+List!" By the time you make it to sub-basement 17, there are only a
+few minutes until midnight. "We have a big problem," she says; "there
+must be almost fifty bugs in this system, but nothing else can print
+The List. Stand in this square, quick! There's no time to explain; if
+you can convince them to pay you in stars, you'll be able to--" She
+pulls a lever and the world goes blurry.
+
+When your eyes can focus again, everything seems a lot more pixelated
+than before. She must have sent you inside the computer! You check the
+system clock: 25 milliseconds until midnight. With that much time, you
+should be able to collect all fifty stars by December 25th.
+
+Collect stars by solving puzzles. Two puzzles will be made available
+on each day millisecond in the advent calendar; the second puzzle is
+unlocked when you complete the first. Each puzzle grants one
+star. Good luck!
+
+** Day 1: Inverse Captcha
+
+#+NAME: reverse-captcha-input
+| "29917128875332952564321392569634257121244516819997569284938677239676779378822158323549832814412597817651244117851771257438674567254146559419528411463781241159837576747416543451994579655175322397355255587935456185669334559882554936642122347526466965746273596321419312386992922582836979771421518356285534285825212798113159911272923448284681544657616654285632235958355867722479252256292311384799669645293812691169936746744856227797779513997329663235176153745581296191298956836998758194274865327383988992499115472925731787228592624911829221985925935268785757854569131538763133427434848767475989173579655375125972435359317237712667658828722623837448758528395981635746922144957695238318954845799697142491972626942976788997427135797297649149849739186827185775786254552866371729489943881272817466129271912247236569141713377483469323737384967871876982476485658337183881519295728697121462266226452265259877781881868585356333494916519693683238733823362353424927852348119426673294798416314637799636344448941782774113142925315947664869341363354235389597893211532745789957591898692253157726576488811769461354938575527273474399545366389515353657644736458182565245181653996192644851687269744491856672563885457872883368415631469696994757636288575816146927747179133188841148212825453859269643736199836818121559198563122442483528316837885842696283932779475955796132242682934853291737434482287486978566652161245555856779844813283979453489221189332412315117573259531352875384444264457373153263878999332444178577127433891164266387721116357278222665798584824336957648454426665495982221179382794158366894875864761266695773155813823291684611617853255857774422185987921219618596814446229556938354417164971795294741898631698578989231245376826359179266783767935932788845143542293569863998773276365886375624694329228686284863341465994571635379257258559894197638117333711626435669415976255967412994139131385751822134927578932521461677534945328228131973291962134523589491173343648964449149716696761218423314765168285342711137126239639867897341514131244859826663281981251614843274762372382114258543828157464392" |
+
+*** 1-1
+
+You're standing in a room with "digitization quarantine" written in
+LEDs along one wall. The only door is locked, but it includes a small
+interface. "Restricted Area - Strictly No Digitized Users Allowed."
+
+It goes on to explain that you may only leave by solving a captcha to
+prove you're not a human. Apparently, you only get one millisecond to
+solve the captcha: too fast for a normal human, but it feels like
+hours to you.
+
+The captcha requires you to review a sequence of digits (your puzzle
+input) and find the sum of all digits that match the next digit in the
+list. The list is circular, so the digit after the last digit is the
+first digit in the list.
+
+For example:
+
+    1122 produces a sum of 3 (1 + 2) because the first digit (1)
+    matches the second digit and the third digit (2) matches the
+    fourth digit.
+    1111 produces 4 because each digit (all 1) matches the next.
+    1234 produces 0 because no digit matches the next.
+    91212129 produces 9 because the only digit that matches the next
+    one is the last digit, 9.
+
+What is the solution to your captcha?
+
+#+NAME: reverse_captcha
+#+BEGIN_SRC awk :stdin reverse-captcha-input
+  {
+      split($0, n, "")
+      # Add first digit as last to mock circular behaviour
+      n[length($0)+1]=n[1]
+      for (i=1; i <= length($0); i++)
+      {
+          # Sum on equal following numbers
+          if (n[i] == n[i+1])
+          {
+              sum+=n[i]
+          }
+      }
+  }
+  END {
+      print sum
+  }
+#+END_SRC
+
+#+RESULTS: reverse_captcha
+: 1141
+
+*** 1-2
+
+You notice a progress bar that jumps to 50% completion. Apparently,
+the door isn't yet satisfied, but it did emit a star as
+encouragement. The instructions change:
+
+Now, instead of considering the next digit, it wants you to consider
+the digit halfway around the circular list. That is, if your list
+contains 10 items, only include a digit in your sum if the digit 10/2
+= 5 steps forward matches it. Fortunately, your list has an even
+number of elements.
+
+For example:
+
+    1212 produces 6: the list contains 4 items, and all four digits
+    match the digit 2 items ahead.
+    1221 produces 0, because every comparison is between a 1 and a 2.
+    123425 produces 4, because both 2s match each other, but no other
+    digit has a match.
+    123123 produces 12.
+    12131415 produces 4.
+
+What is the solution to your new captcha?
+
+#+NAME: reverse_captcha_p2
+#+BEGIN_SRC awk :stdin reverse-captcha-input
+  {
+      split($0, n, "")
+      hl=length($0)/2
+      for (i=1; i <= hl; i++)
+      {
+          if (n[i] == n[i+hl])
+          {
+              sum+=2*n[i]
+          }
+      }
+  }
+  END {
+      print sum
+  }
+#+END_SRC
+
+#+RESULTS: reverse_captcha_p2
+: 950
+
+** Day 2: Corruption Checksum
+
+#+NAME: checksum-input
+| 5806 | 6444 | 1281 |   38 |  267 | 1835 |  223 | 4912 | 5995 |  230 | 4395 | 2986 | 6048 | 4719 |  216 | 1201 |
+|   74 |  127 |  226 |   84 |  174 |  280 |   94 |  159 |  198 |  305 |  124 |  106 |  205 |   99 |  177 |  294 |
+| 1332 |   52 |   54 |  655 |   56 |  170 |  843 |  707 | 1273 | 1163 |   89 |   23 |   43 | 1300 | 1383 | 1229 |
+| 5653 |  236 | 1944 | 3807 | 5356 |  246 |  222 | 1999 | 4872 |  206 | 5265 | 5397 | 5220 | 5538 |  286 |  917 |
+| 3512 | 3132 | 2826 | 3664 | 2814 |  549 | 3408 | 3384 |  142 |  120 |  160 |  114 | 1395 | 2074 | 1816 | 2357 |
+|  100 | 2000 |  112 |  103 | 2122 |  113 |   92 |  522 | 1650 |  929 | 1281 | 2286 | 2259 | 1068 | 1089 |  651 |
+|  646 |  490 |  297 |   60 |  424 |  234 |   48 |  491 |  245 |  523 |  229 |  189 |  174 |  627 |  441 |  598 |
+| 2321 |  555 | 2413 | 2378 |  157 |   27 |  194 | 2512 |  117 |  140 | 2287 |  277 | 2635 | 1374 | 1496 | 1698 |
+|  101 | 1177 |  104 |   89 |  542 | 2033 | 1724 | 1197 |  474 | 1041 | 1803 |  770 |   87 | 1869 | 1183 |  553 |
+| 1393 |   92 |  105 | 1395 | 1000 |   85 |  391 | 1360 | 1529 | 1367 | 1063 |  688 |  642 |  102 |  999 |  638 |
+| 4627 |  223 |  188 | 5529 | 2406 | 4980 | 2384 | 2024 | 4610 |  279 |  249 | 2331 | 4660 | 4350 | 3264 |  242 |
+|  769 |  779 |  502 |   75 | 1105 |   53 |   55 |  931 | 1056 | 1195 |   65 |  292 | 1234 | 1164 |  678 | 1032 |
+| 2554 |   75 | 4406 |  484 | 2285 |  226 | 5666 |  245 | 4972 | 3739 | 5185 | 1543 |  230 |  236 | 3621 | 5387 |
+|  826 | 4028 | 4274 |  163 | 5303 | 4610 |  145 | 5779 |  157 | 4994 | 5053 |  186 | 5060 | 3082 | 2186 | 4882 |
+|  588 |  345 |   67 |  286 |  743 |   54 |  802 |  776 |   29 |   44 |  107 |   63 |  303 |  372 |   41 |  810 |
+|  128 | 2088 | 3422 |  111 | 3312 |  740 | 3024 | 1946 |  920 |  131 |  112 |  477 | 3386 | 2392 | 1108 | 2741 |
+
+*** 2-1
+
+As you walk through the door, a glowing humanoid shape yells in your
+direction. "You there! Your state appears to be idle. Come help us
+repair the corruption in this spreadsheet - if we take another
+millisecond, we'll have to display an hourglass cursor!"
+
+The spreadsheet consists of rows of apparently-random numbers. To make
+sure the recovery process is on the right track, they need you to
+calculate the spreadsheet's checksum. For each row, determine the
+difference between the largest value and the smallest value; the
+checksum is the sum of all of these differences.
+
+For example, given the following spreadsheet:
+
+| 5 | 1 | 9 | 5 |
+| 7 | 5 | 3 |   |
+| 2 | 4 | 6 | 8 |
+
+    The first row's largest and smallest values are 9 and 1, and their
+    difference is 8.
+    The second row's largest and smallest values are 7 and 3, and
+    their difference is 4.
+    The third row's difference is 6.
+
+In this example, the spreadsheet's checksum would be 8 + 4 + 6 = 18.
+
+What is the checksum for the spreadsheet in your puzzle input?
+
+#+NAME: checksum
+#+BEGIN_SRC awk :stdin checksum-input
+  {
+      min = $1
+      max = $1
+      for(i=1; i <= NF; i++)
+      {
+          min = (min < $i ? min : $i)
+          max = (max > $i ? max : $i)
+      }
+      diff = max-min
+      checksum+=diff
+  }
+  END { print checksum }
+#+END_SRC
+
+#+RESULTS: checksum
+: 47623
+
+*** 2-2
+
+"Great work; looks like we're on the right track after all. Here's a
+star for your effort." However, the program seems a little
+worried. Can programs be worried?
+
+"Based on what we're seeing, it looks like all the User wanted is some
+information about the evenly divisible values in the
+spreadsheet. Unfortunately, none of us are equipped for that kind of
+calculation - most of us specialize in bitwise operations."
+
+It sounds like the goal is to find the only two numbers in each row
+where one evenly divides the other - that is, where the result of the
+division operation is a whole number. They would like you to find
+those numbers on each line, divide them, and add up each line's
+result.
+
+For example, given the following spreadsheet:
+
+| 5 | 9 | 2 | 8 |
+| 9 | 4 | 7 | 3 |
+| 3 | 8 | 6 | 5 |
+
+    In the first row, the only two numbers that evenly divide are 8
+    and 2; the result of this division is 4.
+    In the second row, the two numbers are 9 and 3; the result is 3.
+    In the third row, the result is 2.
+
+In this example, the sum of the results would be 4 + 3 + 2 = 9.
+
+What is the sum of each row's result in your puzzle input?
+
+#+NAME: evenly-divisable
+#+BEGIN_SRC awk :stdin checksum-input
+  {
+      for(i=1; i <= NF; i++)
+      {
+          for(j=1; j <= NF; j++)
+          {
+              if(i!=j)
+              {
+                  if ($i % $j == 0)
+                  {
+                      sum+=$i/$j
+                      next
+                  }
+              }
+          }
+      }
+  }
+  END { print sum }
+#+END_SRC
+
+#+RESULTS: evenly-divisable
+: 312
+
+** Day 3: Spiral Memory
+
+#+NAME: spiral-memory-input
+| 37 |
+
+| 325489 |
+
+*** 3-1
+
+You come across an experimental new kind of memory stored on an
+infinite two-dimensional grid.
+
+Each square on the grid is allocated in a spiral pattern starting at a
+location marked 1 and then counting up while spiraling outward. For
+example, the first few squares are allocated like this:
+
+| 17 | 16 | 15 |   14 |  13 |
+| 18 |  5 |  4 |    3 |  12 |
+| 19 |  6 |  1 |    2 |  11 |
+| 20 |  7 |  8 |    9 |  10 |
+| 21 | 22 | 23 | ---> | ... |
+
+While this is very space-efficient (no squares are skipped), requested
+data must be carried back to square 1 (the location of the only access
+port for this memory system) by programs that can only move up, down,
+left, or right. They always take the shortest path: the Manhattan
+Distance between the location of the data and square 1.
+
+For example:
+
+    Data from square 1 is carried 0 steps, since it's at the access port.
+    Data from square 12 is carried 3 steps, such as: down, left, left.
+    Data from square 23 is carried only 2 steps: up twice.
+    Data from square 1024 must be carried 31 steps.
+
+How many steps are required to carry the data from the square
+identified in your puzzle input all the way to the access port?
+
+
+| 37 | 36 | 35 | 34 | 33 | 32 | 31 |
+| 38 | 17 | 16 | 15 | 14 | 13 | 30 |
+| 39 | 18 |  5 |  4 |  3 | 12 | 29 |
+| 40 | 19 |  6 |  1 |  2 | 11 | 28 |
+| 41 | 20 |  7 |  8 |  9 | 10 | 27 |
+| 42 | 21 | 22 | 23 | 24 | 25 | 26 |
+| 43 | 44 | 45 | 46 | 47 | 48 |    |
+
+
+#+NAME: spiral-memory
+#+BEGIN_SRC awk :stdin spiral-memory-input
+  {
+      # Find out how large cube it is
+      sq=sqrt($0)
+      # Round square up
+      sq=(sq==int(sq) ? int(sq) : int(sq)+1)
+      # know we know sq is the length of the side.
+      hl=int(sq/2)
+      mhl=hl+1
+      print "Side-length " sq
+      print "Half-length " hl
+
+      # Find out which side the number is on
+      last=1;
+      for(i=1; last<$0; i+=2)
+      {
+          last=i*i
+      }
+      print "Last-cube-num " last
+
+      small_side=sq
+      bl=last-small_side
+      tl=last-2*small_side
+      tr=last-3*small_side
+      br=last-4*small_side+1
+
+      print "bottom-left: " bl
+      print "top-left: "  tl
+      print "top-right: " tr
+      print "bottom-right: " br
+
+      if ($0 > bl)
+      {
+          begin=bl
+      }
+      else if ($0 > tl)
+      {
+          begin=tl
+      }
+      else if ($0 > tr)
+      {
+          begin=tr
+      }
+      else if ($0 > br)
+      {
+          begin=br
+      }
+      print "$0: " $0
+      print "begin: " begin
+
+      mid=begin+hl
+      print "mid: " mid
+      if ($0 < mid)
+      {
+          steps=mid-$0+hl
+      }
+      else if ($0 > mid)
+      {
+          steps=$0-mid+hl
+      }
+      else if($0 == mid)
+      {
+          steps=hl
+      }
+  }
+  END { print steps }
+#+END_SRC
+
+#+RESULTS: spiral-memory
+| Side-length   |  7 |
+| Half-length   |  3 |
+| Last-cube-num | 49 |
+| bottom-left:  | 42 |
+| top-left:     | 35 |
+| top-right:    | 28 |
+| bottom-right: | 22 |
+| $0:           | 37 |
+| begin:        | 35 |
+| mid:          | 38 |
+| 4             |    |
+
+*** 3-2
+
+** Day 4: High-Entropy Passphrases
+
+*** passphrase-input
+#+NAME: passphrase-input
+| pphsv   | ojtou   | brvhsj  | cer     | ntfhlra | udeh    | ccgtyzc | zoyzmh  | jum     | lugbnk  |         |
+| vxjnf   | fzqitnj | uyfck   | blnl    | impo    | kxoow   | nngd    | worcm   | bdesehw |         |         |
+| caibh   | nfuk    | kfnu    | llfdbz  | uxjty   | yxjut   | jcea    |         |         |         |         |
+| qiho    | qif     | eupwww  | avyglnj | nxzotsu | hio     | lws     |         |         |         |         |
+| xjty    | usocjsh | pivk    | qnknunc | yjcgh   | bwya    | djw     | zpyr    |         |         |         |
+| ycfmfe  | mgq     | sjiomg  | nfzjul  | bjwkmgu | yvsnvgj | dcjupu  | wzz     | blmn    |         |         |
+| rdowgbt | vpwfdoi | blzl    | laghnk  | gsa     | vhnpo   | cztxzlb | rtz     | hvwonhb | eciju   | pfjtbo  |
+| bqs     | bqs     | dbutvgf | mmzb    | izpyud  | rap     | izpyud  | xlzeb   | mnj     | hjncs   |         |
+| xpu     | vwp     | nujcos  | piu     | irindir | tpmfd   | umtvlm  | gznu    |         |         |         |
+| sfpuxar | qcnbte  | omouazv | cnh     | uaxspfr | sepolf  | rusafpx |         |         |         |         |
+| xbmaf   | iceyqqq | sabpt   | gliexel | muubepe | qqiyqce | fmrcc   | eazk    | obkeonl | fmccr   | kgk     |
+| apg     | gbycwe  | gap     | pag     |         |         |         |         |         |         |         |
+| gagv    | saqbk   | lwtllc  | wnhzz   | khxsjc  |         |         |         |         |         |         |
+| lgc     | alen    | rlmsp   | anel    | gcbvg   |         |         |         |         |         |         |
+| bujlaz  | rks     | rlqf    | deknmee | yrp     |         |         |         |         |         |         |
+| scqvl   | weusbc  | bgvaz   | vgg     | cjwsfno | vqy     | zbq     | aqy     | tvf     | bgzav   |         |
+| hbki    | vei     | fxdwljs | myjuba  | elbsib  | pvy     | xxjxgi  | dtgv    |         |         |         |
+| linzaeu | qbwdke  | fdg     | pykw    |         |         |         |         |         |         |         |
+| qvtdd   | aco     | aav     | bpu     | mvkcuc  | kjfj    | japgfki | jfdl    | gem     | hog     | bdzsiea |
+| wpbigkb | lzhwba  | jssjkn  | qvb     | kmwu    | qddv    |         |         |         |         |         |
+| iny     | osyvqnt | tumunzb | torq    | bdeneg  | wywank  | poza    | ipp     | iggorw  |         |         |
+| tuko    | mhdbsf  | vmjdop  | jomaqpj | rcdsud  | hmgspr  | lsas    | nzmwc   |         |         |         |
+| cirkjq  | nmjuu   | xtgejv  | gtexvj  | vjcmtqq | unjmu   |         |         |         |         |         |
+| xsdmezq | xvqjvqp | exhygy  | qahju   | hvd     | qadmdh  | lok     |         |         |         |         |
+| wvvys   | kax     | rohrrar | rwhnvi  | lhnmefp | lsktouy | bxilosp |         |         |         |         |
+| wayf    | diobnl  | zvu     | obnidl  | oibnld  |         |         |         |         |         |         |
+| cewil   | ygsf    | ffzp    | ruxhu   | vah     | lnvwt   | aef     | lnnjc   | kgkb    | gxtlx   | feko    |
+| uti     | epphrin | pywths  | cpzzh   | csjei   | nczhamy | gayxmb  | bdcytq  | xkx     | fgmt    |         |
+| qvzyuwi | dwo     | swkw    | bwjdrn  | dasgd   | ijgw    | vzabaop | yefyhmc | wgij    |         |         |
+| dyg     | sugrf   | vid     | etz     | weyqg   | nyntx   | dwfgwm  | khon    | hnzzzn  | xfyra   |         |
+| ofbh    | bdrsk   | rdrjj   | elaxvk  | jrjdr   |         |         |         |         |         |         |
+| msxau   | rsocvx  | zxdda   | mxz     | lknl    |         |         |         |         |         |         |
+| qktaywx | dirpdbf | unqnd   | wbrwkuu | fvmqwl  | emxr    | big     |         |         |         |         |
+| xwz     | kvsydc  | ayokjyy | qiah    | omw     | neo     | htltxx  | fxhwqwj | colqvbb | sxmo    | ephfkex |
+| ncjxoaf | fwjkc   | czmhv   | ylg     | axcjofn | dvj     | bzqjku  | opvcr   | jiwzucg | vmhzc   |         |
+| gmmnrt  | zqar    | twdwrg  | qiwwki  | fcbr    | lixm    | hjdwwe  | moiva   |         |         |         |
+| roinlxg | cxeezve | whannk  | cxeezve | pyoj    | boweioy | cpkgxsz |         |         |         |         |
+| qkct    | qso     | xlb     | xyy     | aellfet | rzt     | cbboow  | devfb   | nih     | fhbfxzi |         |
+| qyc     | ltxia   | alixt   | atilx   | xtgrv   |         |         |         |         |         |         |
+| svruz   | ufvo    | rvesnxv | dik     | vzurs   | jjg     | idk     |         |         |         |         |
+| xeudhrg | hudn    | cilo    | ljplosb |         |         |         |         |         |         |         |
+| kpb     | oyzvywx | vldko   | qhfkwod | bkeutk  | zqcqug  | pbriu   | wqocos  |         |         |         |
+| qkngzfy | whobyri | aze     | jvipdty | ocirbep | icqwc   |         |         |         |         |         |
+| kzxxlab | sjr     | zhymws  | xkbx    |         |         |         |         |         |         |         |
+| nnxs    | gkwtld  | dwhkry  | snuibq  | dtdl    | aicug   | bhtlfzp | qzk     | jctos   |         |         |
+| regvro  | mxcq    | hqof    | yraucxi | jhkol   | iuxineo | pbtnk   | rfjwc   | szgjpr  | ndqqj   | vfgm    |
+| yqrfox  | xoqrfy  | utbryu  | utubyr  |         |         |         |         |         |         |         |
+| jdubjt  | wqrl    | wnk     | rlqw    | nwiq    | pnbn    | qinw    | uaff    | ftdo    | htfrav  |         |
+| rum     | mur     | umr     | tij     | ovbahl  | losao   | imawwpb | wadhww  | tbteyqc |         |         |
+| napxd   | kzeiqcp | ppgqucm | xkityt  | frq     | hugrp   | gjgtt   | gmuqppc | zwqme   |         |         |
+| xyuzs   | ysch    | howlzgu | dkqppbs | nvbiz   | mks     | mtxv    | vivouex | uvawq   |         |         |
+| ffe     | lfsn    | nlq     | mpulheq | ikcfo   | wdtz    | cnwsbph | zkib    | muu     |         |         |
+| bqkxav  | wtecb   | lxwdhr  | kqbavx  | aqxvbk  |         |         |         |         |         |         |
+| czwswqx | ldkxapd | pfwd    | bdkkj   | iqohla  | cwosw   | ihqpd   | pcc     | ckhabbn |         |         |
+| foiip   | hau     | rbqiyhh | htm     | omeubgh | symh    | evfcqg  |         |         |         |         |
+| lqx     | xlq     | rsgf    | izu     | esetis  |         |         |         |         |         |         |
+| npsrkdj | fvulgkw | eovw    | mzr     | uobcze  | azb     | tij     | ihoer   | ehori   | jit     | wknsqhm |
+| gnrksh  | xwggt   | oosi    | bpnmhx  | qqaa    | mpmryu  | jhzyz   |         |         |         |         |
+| yad     | gbexqcr | gbexqcr | gbexqcr |         |         |         |         |         |         |         |
+| ldca    | xxhznn  | twyy    | ytwy    | zhxnnx  | xfmpi   |         |         |         |         |         |
+| floioot | kfyh    | dhibv   | ezyznar | sfg     | sfg     | ezyznar |         |         |         |         |
+| cinioim | iiocmin | ypla    | aypl    |         |         |         |         |         |         |         |
+| mhwcjbz | dftuqsy | wswop   | eizbf   | ptsd    |         |         |         |         |         |         |
+| ehx     | mlh     | nfxgfkz | uuw     | xftmn   | ptlkbo  | vsnyo   | ttwce   |         |         |         |
+| oexvf   | orcg    | cncnkfk | comvhl  |         |         |         |         |         |         |         |
+| lqewsj  | lyulrcl | efixd   | qvd     | fhznqnz | yvrkwyi | xmhgc   | vzbp    |         |         |         |
+| dmr     | wrxqh   | thcm    | giomp   | rtvl    | ssc     | gwq     | rbklw   | hcmt    | fjvud   |         |
+| teozhb  | dmzwfv  | qkq     | pvcqfqq |         |         |         |         |         |         |         |
+| hvlebc  | qqmg    | repxk   | zwrjdx  | ztruwb  | such    | tyligs  | ybg     |         |         |         |
+| psa     | rqznokd | lgc     | jstqres | yiqt    | mbiody  | xazb    | xjuk    | dtb     |         |         |
+| lea     | ncm     | rnh     | myzqzwm |         |         |         |         |         |         |         |
+| wjml    | eums    | ueflvbr | cjpgnl  | qduunu  | zfxaai  | jwlm    | lprzzg  | vrn     | ttetyr  | sume    |
+| uwkgeu  | uiahd   | plyewgi | vveo    | nwhsitz | mcitc   | uvk     | zsxehgs | sewl    |         |         |
+| lnbdrka | sgtivn  | sozzq   | mgd     | vhxfnlr | twrfpk  |         |         |         |         |         |
+| gadphmk | mbx     | lmlbrf  | tsnehnr | lawdpm  | fnima   | gxgl    |         |         |         |         |
+| umty    | vrn     | dpow    | fsnnpjv | fsnvnjp | nnsvpjf | cioaio  |         |         |         |         |
+| euu     | uue     | zeskmtk | hob     | stekkzm |         |         |         |         |         |         |
+| ypqpri  | qwdju   | ypriqp  | iprqyp  | jnoxqa  |         |         |         |         |         |         |
+| lkppi   | ingfxw  | wlulvp  | yhwrli  | nxwigf  | oyuhq   | ggfslx  |         |         |         |         |
+| kdd     | ypvr    | pyvr    | waw     | vyrp    | khqq    | mamxca  | bapq    | gobfm   |         |         |
+| iuq     | upvdpv  | zxef    | bfwns   | lmq     | lxswr   | kpsqo   | pwde    | iaaou   | nsw     | udy     |
+| lgzo    | nil     | ovgrmt  | omgtrv  | jrqp    | pqrj    | lit     |         |         |         |         |
+| uumyu   | iiakfj  | gvdtzz  | qbux    | yxn     | ejs     | dvlts   |         |         |         |         |
+| hcm     | ghutxq  | zswi    | tmyhqef | hgxtuq  |         |         |         |         |         |         |
+| shkhkdk | kad     | seubeax | kdl     | mzu     |         |         |         |         |         |         |
+| cpykgr  | skx     | rfhpor  | xsk     | moyhlai | ogv     | ophfrr  | dxipuuh |         |         |         |
+| beyw    | jvrre   | opodn   | zdoajhx | fhg     | ijs     | drczy   | drczy   | hjungq  |         |         |
+| jrzieja | gfg     | yzdn    | yxm     | wshibsn | fgg     |         |         |         |         |         |
+| xtylh   | vxscmvp | rfymq   | uzhpyea | spxcmvv | dlni    | msj     | yxhlt   |         |         |         |
+| eov     | awql    | miv     | miv     | eov     |         |         |         |         |         |         |
+| mmvrfbg | fjiyf   | hvqz    | zpuqmbf | fszyuz  | ldfgni  | wemfjl  | fjjpl   | rbnpy   | rfb     |         |
+| ppzpeh  | nam     | ntv     | xnchtyk | hja     | hpepzp  | foj     | bibvx   | nmmdlff | bsrkp   |         |
+| qiy     | qiy     | umhlnh  | qiy     |         |         |         |         |         |         |         |
+| tyds    | oepk    | wae     | tdsy    | sdty    |         |         |         |         |         |         |
+| ukawr   | rkwau   | ghtjhm  | axy     |         |         |         |         |         |         |         |
+| wtbjiv  | btjivw  | ewaf    | hwk     | ttq     |         |         |         |         |         |         |
+| kdpun   | myve    | sqv     | rhvpy   | fnjwt   | puw     | ujhf    | thsp    | nkdadqr |         |         |
+| vyw     | wkkpdpy | xlgz    | lmmcuve | ncuq    | lmotk   |         |         |         |         |         |
+| pmsfw   | vxd     | jpe     | qxlyasx | ejp     | gwuv    |         |         |         |         |         |
+| pmgyndm | ezofbvx | nicbwrw | kwnlj   | yjvnas  | fdpkfo  | mqcsyhn | pyjpf   | fbexvzo | vkftm   | erl     |
+| trmwvk  | rywuzoz | hbidea  | kicohfz | heidab  | deaibh  |         |         |         |         |         |
+| sogf    | govd    | dknpk   | vxrvk   | rlm     | vwhjk   |         |         |         |         |         |
+| xnxbfmw | wguzrhd | zbmkz   | piwppa  | mkbzz   | xvwrdgy | flusfqb |         |         |         |         |
+| cgduq   | hbnwr   | xfx     | mrejb   | ckw     | zkbaihf | cloow   | cwk     | wuvthv  | iwqctx  |         |
+| vugx    | qbucd   | gxuv    | ocb     | cob     |         |         |         |         |         |         |
+| ilmet   | fbelxxz | qratdfn | unoj    | hbc     | duv     | srmikz  |         |         |         |         |
+| vnzuw   | zgpbqgf | uzm     | thysyxd | dinfh   | bgvr    | olungg  | ksd     | dsetwqz | hpg     |         |
+| omagsf  | zpr     | coa     | kknx    | bzithq  | pewp    | flvoz   | xiiq    | weojqr  | wpep    |         |
+| aagj    | gcglqt  | gqcglt  | xbfx    | dhdx    | lbx     |         |         |         |         |         |
+| pljq    | plxuscw | ilh     | wfk     | lhi     | hli     | fouieyw |         |         |         |         |
+| hvnh    | zvm     | aqy     | dzitirm | veq     | ctux    |         |         |         |         |         |
+| lglhs   | aqibdii | hjbn    | cfgc    | qrg     | pnbntcx | owoks   | ebz     |         |         |         |
+| jozngde | lwne    | mbo     | omb     | fnyzvvj | gndozje |         |         |         |         |         |
+| bbdgc   | igtdj   | uhahgp  | sqduko  |         |         |         |         |         |         |         |
+| uuspedu | fgnspm  | ewc     | slly    | jbs     | chl     | heanm   | abqijx  | kadvgxu |         |         |
+| akfsft  | skna    | kusjqr  | rkqujs  |         |         |         |         |         |         |         |
+| erc     | vrljpu  | lruvjp  | lpvjur  |         |         |         |         |         |         |         |
+| iors    | hcdr    | fsqtcj  | vop     | vmn     | dtqnz   | tov     | oscjlw  | cdrh    | ctfjsq  | lrnts   |
+| fxp     | mczo    | sjlcxa  | mzoc    | jmsq    | hcxybow | dmrr    | bcoxhyw |         |         |         |
+| aac     | ewraerq | odmxpz  | aac     | aac     |         |         |         |         |         |         |
+| zzio    | zebmxa  | szeej   | poordr  | gmi     | owwnnh  | xfx     | rzrab   | lfey    | jesze   |         |
+| akc     | yyoj    | vqod    | drtne   |         |         |         |         |         |         |         |
+| joxhvyf | ymasnbr | omouvq  | isxdrr  |         |         |         |         |         |         |         |
+| qyi     | ayrkzu  | jsk     | vqvvno  | jkkuxi  | zufnnwu | mrsszdf |         |         |         |         |
+| ocqi    | htfb    | tzjna   | cdt     | wkzhynm | eergf   |         |         |         |         |         |
+| yokzugl | usyuqu  | qvotq   | uweqyow | lygkzuo | kpmqmb  | uglyzok |         |         |         |         |
+| glvshl  | imqv    | jrv     | xlpnsy  | gcg     | psj     | irtiamg | wkl     |         |         |         |
+| bjcpc   | nvyloa  | dkkan   | efj     | okubpc  | cxlowm  | eone    | kmpny   |         |         |         |
+| cyxqys  | nmuaftv | gqxj    | gtvsc   |         |         |         |         |         |         |         |
+| beouh   | dioxiah | kizdy   | hyi     | cozrray | rave    | fqxmxmj | gdm     |         |         |         |
+| frjz    | amrsat  | lxvhzj  | azhevtu | vxlzhj  |         |         |         |         |         |         |
+| zwmnrk  | sbk     | txzrcsj | sbk     | oosgfej | cvh     | zuthibi | onvwd   | sbk     | nhwpzq  |         |
+| gzamt   | vraw    | kuk     | ugayl   | lyaug   | bww     | rwav    | ijah    |         |         |         |
+| bdjirxg | vifjr   | rhbxpa  | oao     | yrhjxoi | pbn     |         |         |         |         |         |
+| navb    | umesiys | yhix    | phuhu   | aekkciu | nlnsiq  | wjf     | idqdwp  |         |         |         |
+| cmhw    | rsu     | urs     | ziprlfe |         |         |         |         |         |         |         |
+| kyhxitv | cgty    | bnwjyq  | cygt    | sgjn    | pdab    | imarvhg | yjbnqw  |         |         |         |
+| axaa    | ejancv  | yau     | njpc    | jvwy    | bpft    | kwjvg   | qzrbvtm | diu     | njpc    | bpft    |
+| ambj    | upe     | rmqr    | yudbiqf | krudp   | pqyf    |         |         |         |         |         |
+| tnb     | mobnpv  | vep     | ohxoc   | cyip    | wxyccfo | jrbi    | rwsws   | kls     | zlv     | oohxc   |
+| fjh     | dmb     | hlbq    | bqc     | jhf     | kax     | suz     | fjjg    | rkpc    |         |         |
+| wjnn    | byfirm  | goeyh   | xtjmdka |         |         |         |         |         |         |         |
+| tgyfxx  | hefpxln | mveobqr | yeo     | ftfn    | srt     | vim     | vlcu    | hevoi   | xtaaff  |         |
+| imyql   | xotcl   | poql    | rlueapq | bkwykm  | hlalk   | bkwykm  |         |         |         |         |
+| gkec    | zff     | hbmtq   | rjxjbcf | arerlu  | pvz     | cdaqi   | nijmhv  | uodwjh  |         |         |
+| mpctof  | mopftc  | ksfbat  | sbkatf  |         |         |         |         |         |         |         |
+| nvdd    | jub     | bvi     | kyggdbx | nwtiok  | gjt     | mgsm    | dbhsn   | rzibgjm | dvdn    | eqi     |
+| ysd     | iirp    | dfgzza  | wiyeoou | ysd     | ispkv   | bcqg    | wwzqgq  | xphse   |         |         |
+| ntq     | ivposb  | gsd     | ezl     | tlkztp  | lez     | qyurp   | vxsmg   | dgs     |         |         |
+| wijs    | rydbj   | onm     | usiyqzb | hwrol   | giusanb | kewukl  | yziuqbs | doojam  | nom     |         |
+| lfacyy  | xwwast  | truqtt  | tzneimn | uxsydc  | ktu     | eqyaj   | ndszak  |         |         |         |
+| ffleooc | kikif   | fohgop  | aucy    | moubqxu |         |         |         |         |         |         |
+| iaxc    | pnwexdl | ncy     | vmwm    | xrqoi   | wpgftq  | rofx    | utyzjuf | stdxq   | twpgfq  |         |
+| ppmlp   | etsvi   | cjdx    | poly    | ynx     | vfxpslg | mqjo    | qnpsage | flpsxvg | jwsxiqt |         |
+| lbyhnb  | kflrpeq | ssoti   | webxr   | embbjd  | kbnx    | ubzqco  |         |         |         |         |
+| khhc    | vwuqzb  | ebocbko | rwmonkz | edfqn   | hzh     | qhncoq  | gbwdi   | wjeg    | ocwow   |         |
+| ghzhd   | kcxblp  | lzwkkr  | gzhdh   | umk     | pblcxk  |         |         |         |         |         |
+| wyajtw  | jiff    | ouylv   | sni     | lwhlrg  | avqjiis | igzx    | wbl     | lhrwgl  |         |         |
+| glhh    | kaxha   | tqii    | hwzx    | rgic    | kaxha   | rgyidmt | qdgxfl  | ynjc    | oibfij  |         |
+| bapj    | bix     | rjniw   | ynbql   | idlvnmt | wynpzbl | zlpuoix | kvn     | kakwys  |         |         |
+| aldpxxu | iojxp   | rif     | xbyqtr  | jffdvy  | qnrq    | tqwsdiu |         |         |         |         |
+| ulssco  | ktbymjw | bfj     | zhkg    | zgc     | ctyri   |         |         |         |         |         |
+| ilrmq   | wfahcgk | mrlqi   | bguad   | inj     |         |         |         |         |         |         |
+| cjzc    | rekuy   | ifr     | wfkg    | sple    |         |         |         |         |         |         |
+| cvjkp   | qbmumnp | mprg    | ltmwxxh | zpemtyb | ozzssfd | ksu     | mgrp    |         |         |         |
+| nvc     | sxp     | mpkxz   | bhlctq  | hguaa   | yrdkm   | iwsgfg  | qjssh   | gobbies | hucdh   |         |
+| jdxrjw  | qmo     | qmo     | vobhnu  |         |         |         |         |         |         |         |
+| dnjib   | wtjp    | rfdjqdj | skpvrb  | vkwevb  | kxxovp  |         |         |         |         |         |
+| fzi     | kicta   | zkuvr   | rfaawv  | ehklq   | cfdjsyb | tukahwr | zkuvr   | kicta   | ouq     |         |
+| aba     | ytdguk  | gqmpn   | hvxabff | hvxabff | dckj    |         |         |         |         |         |
+| fna     | wxyqhxd | hvy     | khsu    | yypoyy  | lvvue   | medheua | gim     | slf     | drdbeh  | ikihf   |
+| jquz    | wwo     | wwo     | ghlz    | jrbvb   | jrbvb   |         |         |         |         |         |
+| jwzvkl  | yjw     | ouwla   | yjw     | ouwla   |         |         |         |         |         |         |
+| zsvlgyf | rzqbtj  | qygynem | ukdgjm  | lbsyh   | tmdzp   | fbcaim  | eymzr   |         |         |         |
+| pvw     | sbs     | dvsa    | plmepl  | pwv     | ayxk    | vpw     | dwt     |         |         |         |
+| inayadn | pnti    | yzhxk   | azga    | gxq     | aznbciu | gjnmyqm |         |         |         |         |
+| isgf    | ndqmk   | beyqq   | ebyqq   | srtzxo  | aiiw    | oqfuwp  | uoqwfp  | buejctv | pxbk    |         |
+| pzl     | irv     | tzvzdb  | wcy     | eszm    | ybwiw   | ycw     | riizifd | iybww   |         |         |
+| btpu    | cua     | azzqffy | owcr    |         |         |         |         |         |         |         |
+| ofwq    | sqlpzat | lozdxlc | aevjmpc | lcolzxd | wbbysn  | qwfo    | vcrx    | gdzgi   |         |         |
+| dbpfmxu | ydsxwl  | ijn     | svxtop  | csep    | ldqeog  | ffye    | zcrl    | soh     | aclw    |         |
+| wyiyyhv | vyhiywy | obgi    | hiyywvy |         |         |         |         |         |         |         |
+| ddvaoc  | lhv     | spurn   | rgxyy   | onjw    | illvn   | yryxg   | xyyrg   |         |         |         |
+| vid     | wdttqq  | kajr    | myip    |         |         |         |         |         |         |         |
+| wolqlue | phlunpt | dcmmkfm | sgxk    | dmmckmf | sfng    | jlbsntq | dxp     |         |         |         |
+| zmneyho | fswj    | xdgsjc  | oefwjdi | htgxvbd | tgqrq   | xodoa   |         |         |         |         |
+| ynw     | bygqdnh | hhmnkuw | cojqrke | qszzdjo | orskwq  | mdfae   | asabn   |         |         |         |
+| vvpm    | vkj     | pcxghao | caoxphg | axhblxb | vvmp    |         |         |         |         |         |
+| txox    | nzy     | eqn     | zgir    | dytsi   | girz    | ffa     | ugjjbzj | brob    | fll     |         |
+| kbz     | pukqbd  | fiwmuh  | umwihf  | bkz     | dvz     |         |         |         |         |         |
+| vgs     | vejs    | vejs    | vejs    | mbkyjjy |         |         |         |         |         |         |
+| viqmnmu | bitkyw  | nddnk   | dknnd   | cldnpp  | hipub   | plcdpn  | fdzzpb  | mmyomn  |         |         |
+| ndylnfx | gozlrx  | ngptk   | rnpteb  | wtacx   | xmtcjy  | xldha   |         |         |         |         |
+| fey     | doyxis  | ampmtr  | ycqh    | syw     | cqhlj   | hnngx   |         |         |         |         |
+| dijf    | nac     | tvkq    | ayo     | akbj    | lzmngdm | wfxpn   | bpyvrf  | cvdqpa  |         |         |
+| zsofz   | lhho    | hgat    | wqskga  | mnt     |         |         |         |         |         |         |
+| mylwm   | zxsd    | omzpa   | waz     | hcrr    | lxmpq   | jsw     | sqtwak  | pzoma   |         |         |
+| rwhgsgt | ysdq    | ztihici | mpwcawv | alkqg   | wsxiwx  |         |         |         |         |         |
+| snldn   | bcb     | anjdv   | cbb     | awsscc  | cqxult  | hjmjew  | mcycb   | fdpdg   | sesrh   |         |
+| kukrqm  | fawafz  | qdim    | wyobtqx | bnvjnqg | dcvqxta | yptr    | nnpu    | ughldqp | duo     | zafwaf  |
+| knb     | yjqb    | bscpnt  | nzg     | sqeu    | zkahna  | ttuf    | nsbtpc  | ixwit   | vucwj   | idix    |
+| bfqyx   | xlnpc   | ijrxu   | zkqi    | kjxtahr | fgag    | orusms  | adi     | bfqyx   | bfqyx   |         |
+| dqddc   | ncbv    | bvfk    | hefikb  | dqddc   | hqjl    | otpx    | zfiu    |         |         |         |
+| ntkv    | qunrzx  | eztzure | ctt     | rjo     | bkdt    | znvd    | jwdf    | gqhf    | mmhrzgt |         |
+| zeavm   | hkbf    | rawqwuf | pis     | dojlkt  | vnjhmi  | uvk     | cufmn   | qginezd | xyut    |         |
+| hnidzk  | chlctc  | yst     | pepd    | dxntbxg | vqk     | daxfpmu | wshyddl |         |         |         |
+| jgd     | vesqgo  | bdyqy   | igl     | ahstdm  | wjtd    | lrtkjsv | tjsj    | sccxbih | esn     | gkkzj   |
+| iisiswh | jll     | rhlaf   | jqwwgfa | wmhyo   | izva    | vrg     | zjkak   | nlxxfer | rvhx    |         |
+| mkrkd   | jlqtpy  | ukstro  | ktuors  | wsj     | ynqpbp  | kpiyxzv | nxeiwg  | xpzvkiy |         |         |
+| jbr     | gnct    | fwklekg | cmfqnm  | ctn     | gqobrs  | kwht    |         |         |         |         |
+| pztmjs  | yiffc   | kfhsblx | yiffc   | yiffc   |         |         |         |         |         |         |
+| biezil  | iiezbl  | bzeiil  | smocoju |         |         |         |         |         |         |         |
+| viiigm  | gmmmk   | yeiv    | dxzogro | qsmzsur | hukzwjn | lcle    | syo     | mdj     | uruf    | rxfseu  |
+| extchsd | adeff   | ouikoj  | fyaclr  | rwwvqsd | dooe    | tcxheds | zrdqqhm | fdoxv   | kbxi    | tlcj    |
+| aycnydq | qlxhka  | zoi     | shplo   | qll     |         |         |         |         |         |         |
+| bfry    | lbwckm  | ltq     | rbfy    | gpn     | vojp    | ruj     | dpxcve  | geq     |         |         |
+| svtvfwh | lca     | lac     | qia     | vhwsftv | nookdfz | xgjiaf  | yvcdlt  |         |         |         |
+| aspgqym | fryuzhx | bbydf   | tbn     | bwutsc  | fqgi    | zij     | lmxhog  | qnmse   |         |         |
+| rbb     | gsys    | volnas  | onvlas  | lonasv  | vwjdso  | lnteapy |         |         |         |         |
+| got     | iauk    | kficn   | jvfuy   | yvoe    | jcxwui  | hyamqx  | mke     | mwh     | jcxwui  | hyamqx  |
+| avutfi  | ggmha   | dkopc   | kothnnb | syoi    | xsd     | wjedywy |         |         |         |         |
+| oziejyz | yzeijoz | hnthyn  | knj     | juuq    | qujtp   | kgq     | bymlnlf | yicf    |         |         |
+| zsejuy  | dybeap  | hvowmvn | okxb    | yoi     | epadby  | cnzjk   | xfwprzc |         |         |         |
+| lacg    | iiix    | fblhxvf | nrkkol  | lnafzw  | qspzsn  | gvdy    | ipj     | zub     | uouseo  |         |
+| evukwkh | ycjxxc  | lptwmf  | pmd     | izxdsos | zrkavf  | pgjoy   | zwokg   | mpjiej  |         |         |
+| vqw     | ijwoy   | eaw     | wvq     | svmcq   | ccxi    | nyub    | ynlq    | eqornax | uprt    | pygfe   |
+| plue    | okbbm   | btvm    | gba     | kutn    | jacjx   | ysqt    | lvx     | pcxxu   | qcf     |         |
+| pyw     | ffjfudq | bvk     | hsdwdva | fjnivhf | odbmw   | krpgrj  |         |         |         |         |
+| hziesm  | bxa     | dceiwt  | tmvivjk | snl     | fkh     | dahsxyx | kqlhak  | lurtk   |         |         |
+| xss     | sswyxrg | yqff    | dbkx    | kbxd    | mpzbmnl | bzplnmm |         |         |         |         |
+| uvz     | pjm     | ilrol   | pmj     | uzct    | ztcu    | brhkv   |         |         |         |         |
+| heiz    | jcn     | syjt    | zfvlvaq | aflvqvz | amcjh   | rxnitw  |         |         |         |         |
+| cxl     | nxvrn   | vjnz    | aewtr   | cxtko   | nnvcp   | ltptd   | adpxt   | zvjn    | fntklj  |         |
+| aymmm   | tuirj   | hzngq   | zhbh    | paqs    | kvpfo   | aqsp    | kmo     | acprw   | sabrso  | kdqmp   |
+| ndqjspv | mmhp    | pndjsvq | rti     | usm     |         |         |         |         |         |         |
+| ije     | oad     | mvelyg  | jadz    | ekm     | dao     | zdcmv   |         |         |         |         |
+| qwww    | tmwmdbb | oxxfoza | rgmf    | eonku   | brh     | gcgiuoi | ojscn   |         |         |         |
+| fjedeek | ohlax   | fiydku  | rbnxpg  | wfivg   | cdgs    |         |         |         |         |         |
+| axwbni  | hojye   | mwfe    | oyqknxp | whdgfy  | ihku    | mbhr    | gagnz   | hehagxj |         |         |
+| hibautd | blnayq  | lnayqb  | gepml   | mgpel   | qunw    |         |         |         |         |         |
+| ircx    | oeb     | kujtip  | zbu     | ebo     | cmmn    |         |         |         |         |         |
+| upyqvot | wbponp  | hnn     | vav     | avv     | tvrky   | omm     |         |         |         |         |
+| yzqsnf  | agbfsw  | dbxoya  | sfnqzy  | hqrxek  | qsnyzf  | oagyerm | xxhukm  |         |         |         |
+| xzvk    | mvcwz   | oujr    | hell    | hoe     | xexa    | dqlpqt  | xdqz    | ucola   | hsvv    | tcmybhl |
+| skldxr  | mzyol   | ybzyzd  | jnnxb   | rxncdy  | nkpwy   | fwlnsw  | omylz   | oiwieu  | fshv    | ngvha   |
+| jkwqf   | yxrox   | hejfoq  | orxyx   |         |         |         |         |         |         |         |
+| rijken  | xiwf    | mawqcfu | erinjk  | jsi     | yyg     | mmu     | mdkfqb  |         |         |         |
+| ornjes  | krp     | eornjs  | enjros  | pyqp    | nnwwjl  |         |         |         |         |         |
+| wzd     | uqqo    | kyeli   | tikdle  | aykdjog | uiz     | rbpnw   | mjxezf  | ihiz    | rlgyg   |         |
+| cjm     | ajqgvkz | kfgyy   | dmczlc  | mjc     | kxcm    | zctyqgh | ymsk    | jwhqfd  | czpqgan |         |
+| vxkzvco | owo     | qogj    | uyictoj | kfr     | pyoo    | ejrru   | npluynx | bvv     | jhhzu   | kuciwc  |
+| eqk     | pcsly   | kelu    | arzgoe  | trfo    | fotr    | cuaax   |         |         |         |         |
+| lagonw  | qvcssqz | sdoklh  | uvovi   | sfrkmd  | hnvafj  | ltg     | wfjj    |         |         |         |
+| viwbkm  | hpwe    | kzzwrbr | axjtlq  | mznin   | wwpjg   | unlwur  |         |         |         |         |
+| nuzorgo | qfoz    | ydisca  | qxdfutv | hzg     |         |         |         |         |         |         |
+| nqgge   | tobtt   | hjocx   | ntyqyi  | rxzkynw | wrnxzyk | ciscy   | trjt    | ottbt   |         |         |
+| yuii    | srawx   | gljxe   | eteogz  | kcu     | jlgxe   | tjik    | ktsnp   | agudqok | jwol    | vfnyv   |
+| vgicg   | dhnrmxz | sjhozy  | hlalx   | rutwq   |         |         |         |         |         |         |
+| nyoyoje | kco     | hoyam   | hoyam   | tta     | iflud   | amh     | gdxcsj  | vqr     | fvsqcgv |         |
+| xdmbtph | ueen    | cskerl  | rxjvpdc |         |         |         |         |         |         |         |
+| nricn   | addljzg | obq     | rikez   | igq     | bxygkmv | qmgojou | uheubk  | qor     |         |         |
+| snzd    | ztusvr  | vrstzu  | mceddga | hgu     |         |         |         |         |         |         |
+| vvrbfjg | mcdhmsf | ldtwl   | otuna   | gmjurrx | jgrurxm | rxmurjg | yrioq   |         |         |         |
+| iotkvo  | sftfvn  | vvoit   | lllju   | xvlg    | rdsb    | ywmdf   | mzxigu  | kzq     |         |         |
+| sgqw    | gqsw    | lqfu    | wgqs    | xpiwou  | jurgucd | azq     | wgaqpm  |         |         |         |
+| ijntzi  | chlnfj  | yjqatz  | hjflcn  | vys     | ofq     | oqf     | oadthe  | jrfw    |         |         |
+| mmc     | motjo   | vcwmod  | rpaszfk | zgkkua  | bpja    | vjb     | htrk    |         |         |         |
+| bpfvvka | kmger   | mnvvfl  | hakudy  | yfprdoo | mvnlfv  | rgmek   | evnwg   |         |         |         |
+| mykpu   | juavkn  | cecdvi  | aszbi   | lxm     | hmps    | oaqoif  |         |         |         |         |
+| fshizd  | fsdzhi  | lvcq    | hhpb    | eavwno  | auqlwz  | rpv     | owcdojx | amsmf   | qgnddd  |         |
+| pohmcn  | hlcxk   | qsesxh  | rncr    |         |         |         |         |         |         |         |
+| fgyrsis | ldem    | avxmnh  | frpodq  | oefzn   |         |         |         |         |         |         |
+| plfpu   | qdyojz  | xdrzrjy | kpv     | abkh    | fge     | bbnotvp | liikmcu | czvwl   | oyh     |         |
+| ovha    | muitw   | pzy     | edfjoo  | fhsxuh  | dliyruc | dikcd   | cqem    | ywfy    |         |         |
+| exyry   | jtzqn   | tscr    | qbtxno  | cikk    | poqgr   | tnjzq   | eofe    | sxea    | anlikep | kick    |
+| zcie    | purpw   | dmhhms  | bcdo    | prwup   | uprpw   | wfejgjd |         |         |         |         |
+| kwtjc   | cmixp   | dodfwj  | hcgmmat | pkeyspo | ubnl    | ajxvj   | ffkh    | xvw     |         |         |
+| nvlgq   | oduus   | psufiqg | lrwpn   | dleftn  | xtllqvf | usgz    |         |         |         |         |
+| liarf   | sczsf   | sczsf   | wky     | qtzq    | qvve    | qvve    |         |         |         |         |
+| cit     | vtjsh   | jrhkyvi | txj     | urmq    | hppx    |         |         |         |         |         |
+| rhblmxn | rhblmxn | lkgow   | dylurwc | beyk    | gfcewxj | ehpl    | disoe   | tjbjy   | lkgow   |         |
+| nbkrm   | jvk     | ffux    | ars     | agns    | bebic   | jzjfm   | kmnbr   | gptvtsa | ufxf    |         |
+| hrlvup  | jaz     | tafyr   | qcgq    | wkd     | fiz     | bgsrx   | jmtcvo  | qkbvj   |         |         |
+| eontk   | djf     | tiafrng | mtwat   | puainel | nyjoh   | meynxbf | eqdw    |         |         |         |
+| aspvmbx | tgzuszm | fpj     | xkl     | nzpr    | fjp     | vnomk   | byx     | sbtov   | tnu     | utn     |
+| ldyww   | gwmiddv | hwyh    | gcgsdit | gtgdisc | suufl   | xsw     | dlwyw   |         |         |         |
+| sye     | dgbd    | wyf     | ixqzthx | dgdb    | esy     |         |         |         |         |         |
+| nsdgera | fqz     | xwbdgui | ngdgbcd | bcn     | qrdxml  | cwcmxws | tncm    | mqsodj  | cqgk    |         |
+| estayas | cocmbpv | cdcf    | vygtswo | aplwa   | estayas |         |         |         |         |         |
+| ndc     | ndc     | wntr    | sfls    | sfls    |         |         |         |         |         |         |
+| gse     | svv     | esmi    | lcdii   | lnr     | kemrk   | gnk     | ildic   | blnqy   | wvn     |         |
+| mwlpm   | awkr    | sxsudub | yauwww  | hnktbog | fpnqc   | nmxoq   | yoparu  | tqjpkug | nbipft  |         |
+| czwnkk  | hrodtmx | yyzpil  | ooqjb   | cvxzfh  |         |         |         |         |         |         |
+| kwa     | wak     | gipak   | gsgrw   |         |         |         |         |         |         |         |
+| jyy     | fja     | jjk     | kuvoqdy | urqx    |         |         |         |         |         |         |
+| doyu    | chgn    | gvtxi   | qjdigvy | kxr     | dizwrjc | sll     | zenl    | yyblj   |         |         |
+| epxeqih | kfi     | hlog    | pakk    | kkiidrh | hiufw   | wuhif   | baqzxzi | bgcd    | phi     | jzjdxjp |
+| hllhyad | sodc    | nyrtfe  | kygof   | hyyqi   | txddqg  | wcwxvnt | ewqmj   | wwv     |         |         |
+| vxymuoe | caat    | diqwbo  | vfruxdf | sqniefn | hetcbl  | nvtttu  | ouesb   |         |         |         |
+| yvoez   | pvthzc  | tdowuci | wjijicn | fhpmq   | kfobag  | yctdwj  |         |         |         |         |
+| xaugkb  | rprkg   | tidpx   | pjk     | tpwwm   | pbcfhr  | wmwpt   | sfynrl  | iouaw   | zbnyu   |         |
+| auakc   | culuxg  | bffg    | rodyhea | ixlmtfb | jdurl   | szoa    |         |         |         |         |
+| xgona   | fjzho   | buh     | khbvti  | ddh     | mgj     | ptgaqps |         |         |         |         |
+| dqldupd | udpldqd | poku    | gfgpcg  | zsvk    | grvk    | kntx    | jih     | uwvxdvq | sivk    |         |
+| mwdnq   | wmqdn   | uzto    | mdqnw   |         |         |         |         |         |         |         |
+| alvfm   | qxqo    | thwru   | xqqo    | jilnsgs | rnonk   | fwntuby | ogbha   |         |         |         |
+| gvxlxyf | cdpv    | khvpka  | kgt     | gshlaa  | tenb    |         |         |         |         |         |
+| mtgvvxh | mrjrsd  | truk    | rrerzx  | tujweaz |         |         |         |         |         |         |
+| ozepw   | gsqkr   | rtmmc   | cmrtm   |         |         |         |         |         |         |         |
+| spnthg  | xhlzuu  | xwcrxz  | aqqejhh | bpzh    |         |         |         |         |         |         |
+| ectdftk | rgp     | mkp     | vxp     | pevriz  | wkgfkaw | vfygj   | peg     | gep     | wjn     |         |
+| bksbu   | ywsszf  | tsbrps  | vxicr   | hfustju | ynnlbo  |         |         |         |         |         |
+| sio     | urbvf   | ujezjk  | vkyc    | ukjezj  | bvrfu   | qwwgqmw | uqfekvx | bzipxus | qfumwh  |         |
+| druru   | kycweog | ycmef   | rjyy    | fkgp    |         |         |         |         |         |         |
+| rmf     | ifbip   | rsztco  | coju    | wlr     | bfbmsug | lwr     | bsufbgm | nwmp    |         |         |
+| jjuxtyd | yif     | rkldsvu | binq    | spepa   | mfg     | aszm    |         |         |         |         |
+| ghilaau | ncm     | sgbavz  | omzeotz | azukf   | bgjw    | zqzo    | gjbw    | pld     |         |         |
+| gtog    | iqheik  | budeu   | guvljmi |         |         |         |         |         |         |         |
+| qqlj    | jqql    | ttk     | xcxu    |         |         |         |         |         |         |         |
+| cfq     | cfq     | kpagib  | dxfxufw | hhksbjh | gpcp    |         |         |         |         |         |
+| xkeax   | acnia   | jjubfc  | mhot    | uxlhh   | gnkj    | pavta   | rciondm | rkquh   | xudqian |         |
+| wqhqzg  | psqh    | rnnc    | uujlgq  |         |         |         |         |         |         |         |
+| hpjpaoa | maa     | rdndl   | xewqj   | nmagwx  | xewqj   | hxuyvou | xziv    | rdndl   | fbxmbz  | hmfwghy |
+| dtwnrca | hbfcptw | qrmvat  | sdatx   | les     | zwizogq |         |         |         |         |         |
+| bodiwzg | sgoas   | fsf     | wgkrn   | zgbdowi | wfkz    |         |         |         |         |         |
+| ngcsg   | grtao   | wcfxpyl | gngcs   | fxwycpl | fkpt    |         |         |         |         |         |
+| txvngo  | vxngot  | tkoap   | zqjc    | qzcj    | oeruix  | myh     | ihgdfik | qtt     |         |         |
+| rxeh    | fcbnoo  | rxeh    | lve     | wvoc    | pmnxej  | dlcbrh  | rztt    | noibg   |         |         |
+| zyvq    | lwxqu   | oyjv    | bvidmf  | wxuql   |         |         |         |         |         |         |
+| wzc     | zcw     | czw     | dnhkvrg | nzslrf  |         |         |         |         |         |         |
+| cfgl    | uwhxu   | qnsfmt  | tgyabes | mqnq    | nkitq   | hmcvxlt | qqmn    | yzmb    | uomqp   |         |
+| lwziur  | hgmdmv  | zuvipkp | vir     | apr     | gfaq    | zeo     | dunat   | mqgafzg |         |         |
+| prq     | pqkr    | xlrw    | njf     | ncqni   | kgpoma  | cmtklv  |         |         |         |         |
+| jwfuc   | poz     | opz     | fuple   |         |         |         |         |         |         |         |
+| fgleub  | lcgnifu | lkwo    | kftbc   | onvwvdx | lukpod  | xgmh    | rnj     |         |         |         |
+| rwqvv   | ezjmoni | llq     | ekd     | cdvv    | kzcci   | gzsj    | vuipv   | fnw     |         |         |
+| rtnua   | gbnzg   | kqtogns | iozzwc  | kjpzz   | kiiurey | yzlvzx  | cpy     | xrue    |         |         |
+| fexcjmw | ebwssx  | ewbcgwd | uwolou  | nfdhic  | vupiykn | jss     | djoo    | xftbkgo |         |         |
+| idf     | ipvmez  | qyevwd  | wfsjxja | dif     | dig     |         |         |         |         |         |
+| szpbtsa | bssaztp | sptzasb | qppgz   | odur    | cpmn    | wpmg    |         |         |         |         |
+| pxn     | zjmq    | rbnr    | azwstzm | mln     | upaqyty | nxp     | oge     | nlm     |         |         |
+| bfaryqv | hag     | phtvh   | ypi     |         |         |         |         |         |         |         |
+| epeeog  | lip     | zqio    | wuehlnb | bau     | sbd     | dsb     |         |         |         |         |
+| xbrrp   | sej     | agrqnpa | aarpnqg | bnwyi   | jbn     |         |         |         |         |         |
+| uqmsvd  | asmuyy  | czxviw  | pznnmvc |         |         |         |         |         |         |         |
+| sddwmek | wnaea   | iwphupk | sabo    |         |         |         |         |         |         |         |
+| cingdks | ksh     | mtyip   | zltgafm | dflkcd  | wbdnqup | uokm    | gmxpyd  | libz    | svv     | akce    |
+| qge     | ewv     | dkabkmb | xcpi    | nrkmsu  | mkmb    | djvamg  | mhhrwjh |         |         |         |
+| krjt    | etfhm   | bxzatw  | zdkvz   | ehov    | seyxbw  | mkiirs  | plzoplu | sogmwb  | wodfcle |         |
+| qwea    | adibdp  | emo     | homrd   | pjcrhlc | eqaw    | kqsrp   | rphjlcc |         |         |         |
+| gajzo   | nwjg    | qxjra   | jztcnir | ijvjwez | avxb    | afz     | zyywqz  | kcszgh  | elmlkfh |         |
+| lbz     | ozia    | bctf    | bumoji  | anhil   | rta     | xvit    |         |         |         |         |
+| ejybire | ypjl    | qevak   | fzalx   | mlh     | qxlei   | zib     |         |         |         |         |
+| xmzas   | kwojjz  | ntrnrw  | nbmxlv  | mdgxs   | xjhxg   | suo     | zdcrxl  | qkujisz | pxmu    |         |
+| eezyd   | unrtm   | wyu     | vhufvto | rpb     | isfcy   | ygh     | hgy     |         |         |         |
+| nszvbzv | ebtt    | memrsva | ebtt    | qwcaq   | bhbas   | pvzfbov | ppjbdy  | nszvbzv | jabvrp  |         |
+| rlo     | zbmi    | lugvu   | yeby    |         |         |         |         |         |         |         |
+| tfcd    | tvl     | faaq    | mnural  | nyarh   | xnxk    | ctdf    | bodz    |         |         |         |
+| vwdrhc  | gub     | bgu     | fpcovx  | rcvwhd  | jukwsue |         |         |         |         |         |
+| aekrhi  | lpknnrh | bett    | tkib    | ioqrap  | igwnst  | aekrhi  | lhha    |         |         |         |
+| acg     | mknhazp | pcgjuk  | tajplv  |         |         |         |         |         |         |         |
+| masq    | fyjkn   | agq     | qhxbbl  | qga     | npzj    | fme     | xtihic  | rntisg  | iqv     | aqg     |
+| ipagh   | fjth    | mswztpi | iexd    | cocojy  | vhqrla  | joe     | wrsrmw  |         |         |         |
+| njztu   | tsh     | auqrxca | zpp     |         |         |         |         |         |         |         |
+| jctn    | webxi   | haq     | irrr    | qox     | irrr    | webxi   |         |         |         |         |
+| reaw    | axmnvd  | voakf   | lnz     | ftbxfh  | zjyxzl  | pryfjpv | sistgb  | pov     | mshs    |         |
+| gsy     | ctsngl  | ptmnyx  | vpjx    | zpvtori | pfu     | ioycdrq |         |         |         |         |
+| aobdtlj | osdnrth | sgqe    | geqs    | qegs    |         |         |         |         |         |         |
+| oamrlxk | ygbb    | rkamoxl | nztl    | sarbmtj | yqupjt  | plu     | sbtarmj | vpa     | rxea    |         |
+| yvhgp   | yznko   | epwpza  | gqrsod  | rilukp  | cglhomj | wnaplu  | ugvdko  | qdr     |         |         |
+| cggztg  | ajw     | gggzct  | ubmiefj | kpa     |         |         |         |         |         |         |
+| rel     | lvasbh  | kobm    | mdnzla  | pwnyj   | ehep    | gzx     | nhjdnsg | rxa     |         |         |
+| qaz     | gook    | rplqwh  | vsht    |         |         |         |         |         |         |         |
+| dhe     | aneq    | ivrn    | awekad  | ckcbt   | zsqca   | ehd     | rvni    | oulwfuu |         |         |
+| oxgzzow | wntz    | tkqaoi  | oxgzzow | lwkdpgy | lhd     | aekjasp | tkqaoi  | dnhaw   |         |         |
+| alxghco | cpanoa  | onjh    | hyeyebe | whxn    | zfu     | zozbll  | gojn    |         |         |         |
+| zdqulsa | dlqsazu | zqudals | sfedw   |         |         |         |         |         |         |         |
+| rydtrsv | rrtvysd | fvyza   | drdgh   | lsfzt   | blnxr   | cnxe    | tslzf   | iijyds  | ylcxn   |         |
+| cczea   | nxx     | kwol    | kopaza  | wuvr    | cyvoo   | whlicv  |         |         |         |         |
+| zbmrwdq | tlzbevx | jwzpsc  | uvkwpd  | bmss    | rbzblj  |         |         |         |         |         |
+| jogx    | jgi     | gji     | hypmtkg | ijg     | oscjv   |         |         |         |         |         |
+| flkoqja | kwmrqv  | wzehel  | fvmcfap | mkwqvr  | ivwxg   | jqfwdvo | hweezl  |         |         |         |
+| vgjg    | nzucho  | nuohcz  | ggvj    | tmxci   |         |         |         |         |         |         |
+| fqaqx   | zeybhtg | bxeic   | lftuqp  | wzuerz  | sww     | qfltxk  |         |         |         |         |
+| keiy    | myrvp   | blkxcg  | lncqmsu | diittlg | fqrf    | digrel  | cpwrk   | ipan    | dkxb    | bymlzo  |
+| owm     | irygdz  | pyhj    | mow     | wmo     |         |         |         |         |         |         |
+| noul    | pbvvt   | zcv     | ueqyjl  | zhetlw  | lpjfhli |         |         |         |         |         |
+| felvwb  | wdykz   | kyibdz  | haq     | qkouj   | vuav    | oztyqh  |         |         |         |         |
+| dyxo    | njcr    | hcuk    | ysrr    | pucw    | qbajztc |         |         |         |         |         |
+| ooyaz   | pmt     | hqwu    | gjx     | tmp     | tpm     | pwz     |         |         |         |         |
+| lyhzajz | dfot    | avyifo  | kdwka   | pwypcep | kyyw    | tirlku  | zdpjmft |         |         |         |
+| aexle   | hfxo    | dacwvcy | xsiotyg | cifq    | ibupshj | aktt    | rzvf    | pgafj   |         |         |
+| pxubhw  | ibpm    | jxtxg   | iwnssf  | osbpj   |         |         |         |         |         |         |
+| exmtfyx | blbfg   | emrunru | zkuhoi  | lfzn    | zrj     | unmcece | phuppi  |         |         |         |
+| icomb   | rmy     | mvsqqkh | zwjubz  | lumq    | wekx    |         |         |         |         |         |
+| cmdgs   | gsr     | pfhqx   | pfhqx   | cmdgs   | pga     |         |         |         |         |         |
+| rpyf    | jejc    | adaiou  | dutv    | imbenyu | dqw     | zhebjhu | pryf    | vtxs    | yprf    |         |
+| cxj     | roprjn  | rqoh    | qacagru | snxd    |         |         |         |         |         |         |
+| rczvi   | hfpl    | luc     | yowgj   | nvavlhw | vjudkmv | dwu     | teq     |         |         |         |
+| klwc    | cktzh   | ksnvswl | nsgeu   | xyohp   | mhs     | fxnjhm  | fwrcg   | rdeadkx | cim     |         |
+| ounvb   | vzqje   | ujctzzk | iyy     | vxck    | ebtvbqr | uswsmcr | jveqz   | qejzv   | jmi     | pboq    |
+| lwffygh | mqsh    | vnnj    | ufz     | qhms    | gqfuxo  | lurzmu  |         |         |         |         |
+| buf     | psdluck | gapwoo  | wgll    | sbfavbc | lljfvzx | cdgo    | rpt     | sfvabcb |         |         |
+| svefr   | kubbri  | fervs   | nboi    | zkvq    |         |         |         |         |         |         |
+| jwr     | vtc     | zkcpzb  | kczbzp  | cdned   | pzbzkc  | wigjuak | fszgweu | odflfek |         |         |
+| vwdqm   | khnnj   | plokjg  | vnce    | venc    | vecn    | yzxtgb  |         |         |         |         |
+| tawl    | yrhoz   | tawl    | yrhoz   |         |         |         |         |         |         |         |
+| vvehsl  | kdhzgme | rix     | rcs     | btm     | pxnlsps | vlhesv  | sxpnslp | yqjtool |         |         |
+| eqpyw   | kpmkcyw | wqhglxg | ajfzo   | hbd     | qvmhy   | nhokah  | iisqvad | kxuyd   | fxek    |         |
+| jsz     | txhwhah | hxt     | djnvl   | srylveu | pxp     | dzmmn   | epek    | tzs     |         |         |
+| joyzql  | jqczueb | rtdyw   | fyc     | fjirfyn | tjcalz  | joyzql  | fyc     |         |         |         |
+| pjrmiz  | xwnmwns | kcqjuut | zfgxhdr | octwn   | kqppg   | zhfgxrd | wmwnnxs |         |         |         |
+| ema     | yqxqs   | aljjo   | ajloj   | wozb    |         |         |         |         |         |         |
+| urgmhiz | epqj    | vhhaxdm | ptlsvig | qzbmm   | cumbho  | lkg     | gyzmg   | eaopyzf | ncfy    | mqe     |
+| ijvwvo  | oszkees | ugvyk   | hjdj    | ftip    | itfp    |         |         |         |         |         |
+| ylfw    | qutzdj  | mgqp    | cyjss   | yzsdqqi | iykvs   | fyor    | sthyqp  | mrjtzee | hgo     | zwqbtgk |
+| bkfkns  | gco     | bykzc   | mje     | dwmkrwt | ljegqor | yxjxp   | oaleuu  |         |         |         |
+| xeltq   | ggyqis  | aud     | frtyxhx | iwz     | wiz     | fwoxz   | fozxw   |         |         |         |
+| zdu     | nwduqsa | nced    | iphaaxo |         |         |         |         |         |         |         |
+| bqjj    | oah     | ezd     | brhgxrc | pmkz    | kdog    | exw     |         |         |         |         |
+| ihatt   | hck     | iepn    | egemprp | wrz     | wzcuo   | xjzeaa  | wku     | ivjvihh |         |         |
+| cwkuof  | bmj     | qmxd    | qbtms   | zgdei   | bsqmt   | ssndhw  | eeenku  | lcsqy   | bvvodr  |         |
+| tek     | zsgytci | vgoun   | kwwu    |         |         |         |         |         |         |         |
+| jcxvp   | ijxc    | buqgix  | uil     | zfoku   |         |         |         |         |         |         |
+| ggndshq | bmjeo   | yqaxtik | blspz   | yofh    | edaroy  |         |         |         |         |         |
+| ipvtxh  | ouye    | elln    | dllvx   | iqza    | nhwf    | zyfw    | pvlky   |         |         |         |
+| iydcx   | gvarm   | gvarm   | wegmiy  |         |         |         |         |         |         |         |
+| sfjd    | liiflle | mulboe  | qywzs   | tzbns   | trojl   | pad     | mnfcrhb | sltb    |         |         |
+| gthqj   | jvpsof  | jwlfyeg | jwhlfj  |         |         |         |         |         |         |         |
+| qckv    | umzrge  | gnzc    | mnr     | xde     |         |         |         |         |         |         |
+| gvgxmhv | txnait  | taxint  | ius     | iboqdj  |         |         |         |         |         |         |
+| vsfex   | kbpvsby | qembkb  | efxvs   | vhflzvm | eaazg   | dyg     | bbmekq  |         |         |         |
+| wxpfk   | xwfpk   | xwkpf   | cjsyi   |         |         |         |         |         |         |         |
+| knzg    | eefq    | feqe    | seppop  | ttxz    | qnqfn   | atgsy   | cch     | mkjlbwt | uyhct   |         |
+| quzw    | jbiw    | miqehe  | qvf     | jyipqh  | kzcjxyh |         |         |         |         |         |
+| teuvzf  | tdtwoi  | pcuafa  | cwgjk   | ccur    | lgmqv   | jpjdkk  | efrnw   | uloqn   | dpkjkj  | lwloeph |
+| yaffjy  | xntstsv | gygq    | sxttvsn | tvnstxs |         |         |         |         |         |         |
+| cvbmdf  | pfrfkna | wupv    | van     | iocb    | hsiyke  | obspj   | ytyfkl  | hbsqtij | hkcw    |         |
+| oeddmnu | koso    | mdodeun | ybe     | mhjbmwy | ubejz   | soko    | yxvuv   |         |         |         |
+| nylhy   | ylnyh   | olb     | vcdik   |         |         |         |         |         |         |         |
+| gsp     | ilba    | llnu    | jjk     | urbvuma | qzypf   | bkceotg | ezxq    | hyvjngf |         |         |
+| tfnegyq | rue     | waeif   | tfnegyq | mvqm    |         |         |         |         |         |         |
+| wvgnsk  | cpd     | oib     | wrdfaz  | kohwgkc | kzzig   | hogkwck | gkizz   |         |         |         |
+| fecuuyp | yfq     | bvanvxb | cjeqwf  | unw     | dccr    | qzh     | zqu     | voakj   |         |         |
+| utoazh  | bjuq    | kmhcre  | izmny   | mirorsy | twnl    | jyoc    |         |         |         |         |
+| fnnpd   | dmr     | ccgu    | eqgewc  | zuqivf  |         |         |         |         |         |         |
+| kkxiba  | qdabuen | oikaz   | dnuywmm |         |         |         |         |         |         |         |
+| aogud   | adugo   | uzcglpj | lucv    | dgoua   | mdsqa   | mvrg    |         |         |         |         |
+| lymhv   | sof     | hvyml   | mlvhy   | nit     |         |         |         |         |         |         |
+| chu     | bwxp    | xpbw    | ghaix   | seklnc  | ola     | zofnrwt | uch     |         |         |         |
+| wtt     | abob    | vblijtd | oabb    | qjws    |         |         |         |         |         |         |
+| uozrpw  | kgf     | gxidxm  | uehdr   | fta     | pqakkrq | atf     | fat     | woaolk  |         |         |
+| gaee    | voshd   | ghlyy   | emvzlkg | cmcgk   | tuwlsj  | jwtsul  | znrta   | mjieqph | glker   |         |
+| qiugxas | gkg     | cbzmoz  | kahs    | obzzcm  |         |         |         |         |         |         |
+| puz     | omcokz  | gjc     | heuqb   |         |         |         |         |         |         |         |
+| dgndhb  | wid     | wdi     | scwnrjf | juaisgo | eivaw   | hgdndb  |         |         |         |         |
+| mgcrd   | hnqg    | pkpeb   | vprxcp  |         |         |         |         |         |         |         |
+| atlcnzp | fyp     | cpkivxi | bzj     | ypf     | cqpt    | bysu    |         |         |         |         |
+| pnd     | jiitmzs | csw     | mxnpck  | vxutdrs | ivipzy  | cws     | xiegsy  | qut     |         |         |
+| txlk    | avcvbuu | hnq     | yyriq   | ajyswd  | urgiwc  |         |         |         |         |         |
+| qgiqut  | gvblizs | giqnfrk | tty     | mvoj    | wpikl   | giqnfrk | bkdpndu | xztmxn  | hsmqxf  |         |
+| llthg   | zjslki  | wilj    | rcyfois | bavz    | hrqxn   |         |         |         |         |         |
+| ytbw    | hlkl    | vip     | skycogy | ejiirhx |         |         |         |         |         |         |
+| ndmtg   | bthlbw  | lsoq    | cvlvo   | sqol    | sqlo    | bppl    | sdkbls  | dtpyzrq | vgm     |         |
+| psm     | xpj     | xjp     | lqi     | spm     | gqirw   | aglpj   |         |         |         |         |
+| htg     | fcchvyt | xffev   | szdu    | lieadft |         |         |         |         |         |         |
+| nbjo    | qohgzu  | vofg    | vvild   | dbtyi   | pdolxn  | plnoao  | jxze    | xlpbxj  | brajzg  |         |
+| urpp    | jjv     | lihmvp  | ivkwdqr | sesyp   | ypbry   | qok     | sesyp   | ivkwdqr | was     |         |
+| yinepzv | qvnzdtf | apv     | ucxo    | bdioo   | juga    | hjfsyl  | hmowo   | avc     |         |         |
+| dmiv    | tplae   | iiuiaxx | tpale   | pyzkc   |         |         |         |         |         |         |
+| giwhst  | mpexd   | byfyc   | swuzkc  |         |         |         |         |         |         |         |
+| yydkwp  | xuu     | vjya    | kav     | ujmcxy  | qrtp    | zvlk    |         |         |         |         |
+| lsvdyn  | tkw     | qxu     | omvlc   | wwmfvov | mrgcoov | dhpu    | tfair   | hupd    | zbx     | njzgwtw |
+| zuz     | rsxc    | xsrc    | gdwwf   | nycsv   | zzu     | kcu     |         |         |         |         |
+| unlvzv  | jerqqgm | nozma   | ykbflj  | qihqkx  |         |         |         |         |         |         |
+| pctffo  | begf    | ivrvy   | ezru    | mvqt    | waocq   |         |         |         |         |         |
+| tubtuk  | gxkc    | ikgw    | bjrird  | kxjebbh | sbjyc   | yafkd   | khqajmt | aclpmf  | gqfo    | yrpf    |
+| rdt     | vrxa    | fyudo   | myeosb  | ursflwk |         |         |         |         |         |         |
+| wbjras  | edlbwdp | ctobtw  | jbvtvcd | xjgoo   | cmunxm  | mjtbpi  | klovx   | bypmsab | unc     |         |
+| xckml   | uztr    | htublq  | vilabvr | jdiwus  | qejxur  | evfw    | qqm     |         |         |         |
+| tzqq    | tzqq    | wkb     | wkb     |         |         |         |         |         |         |         |
+| dgmg    | ljzc    | dgmg    | mbmco   | cgze    | qsap    | jccvot  | uors    | iiq     |         |         |
+| rwvac   | woylk   | dmn     | teorprx | nyuvz   | hcwwxlj | lvej    | drbjo   | asjgq   |         |         |
+| ljen    | tpfl    | vixcivr | guaf    | lnje    | waim    | jlen    |         |         |         |         |
+| djgaa   | janhi   | adudm   | yzv     | zkcb    | xqw     | fgvrz   |         |         |         |         |
+| kpkjoon | ggzx    | skp     | rqcsw   | xgzg    | zgxg    | jtf     | ghc     |         |         |         |
+| rtnyxo  | qixfd   | nphekk  | mouzk   | gny     | fpzquw  | qgywx   | rpr     | gqydze  |         |         |
+| gawdlv  | vrivoof | rte     | iyp     | gaih    | sfzplm  |         |         |         |         |         |
+| csojx   | wzojode | uzy     | qulr    | lylmb   | guvtkwv |         |         |         |         |         |
+| ovxj    | aamms   | ftxo    | ebckdqw | wqvsdci | jwfqxks | jafrcrn | yyomrot |         |         |         |
+| qnu     | jqwr    | ywudxk  | qpsez   | rdc     | kiyfz   | iiecf   | dthxjjb | bown    |         |         |
+| typ     | zxcvjo  | rip     | acjhl   | paaab   | qhqipg  | xkguye  | sbxy    | pomkvn  |         |         |
+| ofvaegv | hgak    | oafevgv | hkemar  | rqkha   | grklnsp | msvkkku | rekahm  | bxmjnw  |         |         |
+| ahoihju | sdyn    | phi     | uhz     | lupbx   |         |         |         |         |         |         |
+| lavt    | jef     | klmq    | oqyfpf  | kis     | nazul   | ymezxek | xpla    | fxyrfnt |         |         |
+| nwnagwy | hvpjqfg | sgm     | ungfstr | gso     | owqqxjh |         |         |         |         |         |
+| hey     | hye     | ipyrt   | qxmthg  | jth     | wpbr    | hxgmtq  | cvfkfux | qykdzhk | movcfnl | vxyoc   |
+| zsras   | abnrj   | fgaczuk | ssazr   | xzf     | cnxu    | gns     | wnqqy   | dwjh    | szars   |         |
+| uhb     | zanlvh  | lvdotkb | xekl    | kcofo   |         |         |         |         |         |         |
+| lhx     | iccy    | ibkjw   | ciykxaj | imsx    | ehamqlz | iwzapxc | rhaltv  |         |         |         |
+| pofit   | owmpqej | vwrobh  | jvox    | gdqehss | yyxd    | styu    | tfkm    | fiotp   |         |         |
+| ecz     | mdpoqsv | mdpoqsv | yxx     | rexok   | hcfll   | yvury   | hdhcfu  | juhkvpt | rspnfj  | hxvgdir |
+| ohed    | mtigaoe | eodh    | agmiteo |         |         |         |         |         |         |         |
+| vjvv    | hfco    | cppbxtw | hawsjxz | ovlsq   | qgs     | risgwhg | auhj    |         |         |         |
+| togivgg | czrtvw  | ccz     | wzvtrc  | bse     | lsk     |         |         |         |         |         |
+| ndc     | ndc     | lrfi    | iyleol  | nchx    | jxpv    | xdcsfmp | nnx     | wtvq    | pih     | tgc     |
+| hzpf    | sur     | zhfp    | klfmhx  | lbuidp  | xiqimnf |         |         |         |         |         |
+| qddpdk  | trfxpip | pnsowj  | hidgvnf | prur    | rsrautp | aamykfm | fysqjmq | xwzjane | mbmtxhf | oqctt   |
+| lfd     | eops    | govslp  | ultbye  | vrqai   | hcjkcf  | snpape  |         |         |         |         |
+| cbok    | koumkad | otpozb  | pqcs    | emilpe  | wpcyvxd | bock    |         |         |         |         |
+| spjb    | xkkak   | anuvk   | ejoklh  | nyerw   | bsjp    | zxuq    | vcwitnd | xxtjmjg | zfgq    | xkpf    |
+| juo     | pmiyoh  | xxk     | myphio  | ogfyf   | dovlmwm | moevao  | qqxidn  |         |         |         |
+
+*** 4-1
+
+A new system policy has been put in place that requires all accounts
+to use a passphrase instead of simply a password. A passphrase
+consists of a series of words (lowercase letters) separated by spaces.
+
+To ensure security, a valid passphrase must contain no duplicate words.
+
+For example:
+
+    aa bb cc dd ee is valid.
+    aa bb cc dd aa is not valid - the word aa appears more than once.
+    aa bb cc dd aaa is valid - aa and aaa count as different words.
+
+The system's full passphrase list is available as your puzzle input.
+How many passphrases are valid?
+
+#+NAME: passphrase
+#+BEGIN_SRC awk :stdin passphrase-input
+  BEGIN {
+      sum=0
+      err=0
+  }
+  {
+      sum++
+      split($0, p, " ")
+      for(i=1; i<NF; i++)
+      {
+          for(j=i+1; j<NF; j++)
+          {
+              if(p[i] == p[j])
+              {
+                  err++
+                  next
+              }
+          }
+      }
+  }
+  END {
+      print sum-err
+  }
+#+END_SRC
+
+
+#+RESULTS: passphrase
+: 468
+
+*** 4-2
+
+#+BEGIN_SRC awk :stdin maze-input
+  {
+  }
+#+END_SRC
+
+** Day 5: A Maze of Twisty Trampolines, All Alike
+
+*** maze-input
+#+NAME: maze-input
+|     2 |
+|     0 |
+|    -1 |
+|     0 |
+|    -2 |
+|    -2 |
+|     0 |
+|    -5 |
+|    -6 |
+|     1 |
+|    -4 |
+|    -3 |
+|     1 |
+|    -2 |
+|    -4 |
+|    -9 |
+|    -4 |
+|    -5 |
+|   -10 |
+|   -10 |
+|   -17 |
+|    -8 |
+|   -17 |
+|   -17 |
+|   -10 |
+|   -18 |
+|   -12 |
+|   -21 |
+|    -1 |
+|   -22 |
+|    -4 |
+|   -24 |
+|    -2 |
+|   -16 |
+|    -8 |
+|    -6 |
+|   -33 |
+|     1 |
+|    -2 |
+|    -5 |
+|   -35 |
+|   -20 |
+|   -26 |
+|    -9 |
+|   -15 |
+|   -14 |
+|   -33 |
+|   -24 |
+|    -8 |
+|     2 |
+|   -13 |
+|   -25 |
+|   -45 |
+|   -44 |
+|   -32 |
+|   -50 |
+|   -27 |
+|   -56 |
+|   -56 |
+|   -16 |
+|   -26 |
+|    -8 |
+|   -13 |
+|   -41 |
+|   -48 |
+|   -59 |
+|   -59 |
+|   -34 |
+|    -7 |
+|   -56 |
+|    -8 |
+|   -49 |
+|   -11 |
+|   -16 |
+|   -25 |
+|   -11 |
+|    -4 |
+|   -31 |
+|   -22 |
+|   -12 |
+|   -68 |
+|    -7 |
+|   -13 |
+|     0 |
+|   -12 |
+|    -8 |
+|   -59 |
+|   -73 |
+|   -68 |
+|   -78 |
+|   -46 |
+|   -37 |
+|   -87 |
+|   -63 |
+|   -61 |
+|   -81 |
+|   -83 |
+|   -72 |
+|    -1 |
+|   -36 |
+|   -75 |
+|   -33 |
+|   -31 |
+|   -76 |
+|   -25 |
+|   -15 |
+|   -15 |
+|   -74 |
+|   -74 |
+|   -37 |
+|   -46 |
+|   -82 |
+|  -110 |
+|   -66 |
+|   -60 |
+|  -104 |
+|   -61 |
+|   -55 |
+|     0 |
+|  -109 |
+|   -16 |
+|   -63 |
+|  -118 |
+|  -109 |
+|   -25 |
+|   -96 |
+|  -124 |
+|    -7 |
+|   -20 |
+|   -36 |
+|   -68 |
+|   -38 |
+|   -71 |
+|  -106 |
+|    -7 |
+|   -14 |
+|   -96 |
+|  -117 |
+|  -109 |
+|  -107 |
+|  -112 |
+|   -46 |
+|  -116 |
+|  -128 |
+|   -18 |
+|   -87 |
+|   -20 |
+|  -121 |
+|  -121 |
+|     0 |
+|  -115 |
+|   -89 |
+|     0 |
+|   -12 |
+|  -124 |
+|   -24 |
+|   -18 |
+|  -124 |
+|   -44 |
+|   -99 |
+|   -10 |
+|   -63 |
+|  -103 |
+|   -45 |
+|   -54 |
+|   -99 |
+|  -101 |
+|   -96 |
+|     0 |
+|   -50 |
+|  -143 |
+|   -18 |
+|   -55 |
+|   -78 |
+|   -31 |
+|   -40 |
+|   -62 |
+|  -176 |
+|  -137 |
+|    -5 |
+|  -135 |
+|   -36 |
+|   -52 |
+|   -97 |
+|   -29 |
+|   -16 |
+|   -12 |
+|  -108 |
+|   -64 |
+|   -29 |
+|   -65 |
+|  -128 |
+|  -113 |
+|   -21 |
+|  -135 |
+|  -126 |
+|  -163 |
+|   -51 |
+|   -61 |
+|  -177 |
+|   -52 |
+|   -26 |
+|  -151 |
+|  -142 |
+|   -98 |
+|  -203 |
+|  -178 |
+|  -175 |
+|   -81 |
+|  -110 |
+|  -201 |
+|  -150 |
+|  -104 |
+|  -117 |
+|  -165 |
+|    -4 |
+|   -96 |
+|    -9 |
+|  -118 |
+|  -123 |
+|  -156 |
+|   -39 |
+|  -122 |
+|   -59 |
+|  -223 |
+|    -9 |
+|   -14 |
+|   -53 |
+|  -191 |
+|   -23 |
+|  -171 |
+|    -7 |
+|  -131 |
+|    -2 |
+|  -225 |
+|   -20 |
+|   -66 |
+|  -225 |
+|  -203 |
+|   -41 |
+|  -122 |
+|  -159 |
+|  -222 |
+|   -96 |
+|  -134 |
+|  -191 |
+|  -105 |
+|   -78 |
+|  -139 |
+|  -225 |
+|  -164 |
+|  -109 |
+|  -178 |
+|  -186 |
+|   -24 |
+|  -161 |
+|  -125 |
+|  -214 |
+|  -199 |
+|  -152 |
+|  -172 |
+|  -102 |
+|  -217 |
+|   -15 |
+|   -60 |
+|  -148 |
+|  -173 |
+|   -10 |
+|  -258 |
+|  -119 |
+|    -9 |
+|   -11 |
+|    -6 |
+|   -53 |
+|  -220 |
+|   -57 |
+|  -123 |
+|   -62 |
+|  -172 |
+|   -80 |
+|  -200 |
+|  -236 |
+|  -255 |
+|   -61 |
+|  -199 |
+|  -165 |
+|  -277 |
+|   -32 |
+|  -169 |
+|  -108 |
+|   -86 |
+|  -137 |
+|     2 |
+|   -96 |
+|  -204 |
+|  -269 |
+|  -181 |
+|   -96 |
+|  -166 |
+|  -271 |
+|  -235 |
+|   -75 |
+|  -245 |
+|    -6 |
+|   -95 |
+|  -130 |
+|  -303 |
+|   -55 |
+|  -227 |
+|  -266 |
+|   -82 |
+|  -298 |
+|  -135 |
+|  -272 |
+|  -311 |
+|  -311 |
+|   -86 |
+|  -198 |
+|   -41 |
+|  -147 |
+|  -169 |
+|   -91 |
+|   -65 |
+|  -122 |
+|  -293 |
+|  -149 |
+|  -218 |
+|  -325 |
+|  -292 |
+|  -136 |
+|  -119 |
+|  -100 |
+|  -290 |
+|   -48 |
+|  -257 |
+|  -282 |
+|  -199 |
+|   -67 |
+|  -262 |
+|   -75 |
+|  -274 |
+|  -136 |
+|   -87 |
+|  -123 |
+|   -61 |
+|  -258 |
+|  -117 |
+|   -93 |
+|  -113 |
+|  -250 |
+|  -225 |
+|  -250 |
+|  -135 |
+|  -342 |
+|  -304 |
+|  -153 |
+|  -114 |
+|  -335 |
+|  -327 |
+|  -276 |
+|  -119 |
+|   -35 |
+|   -75 |
+|  -239 |
+|  -140 |
+|  -199 |
+|  -354 |
+|   -94 |
+|   -51 |
+|  -176 |
+|   -35 |
+|  -121 |
+|     2 |
+|   -51 |
+|   -80 |
+|  -116 |
+|   -69 |
+|  -282 |
+|  -180 |
+|   -10 |
+|  -103 |
+|  -172 |
+|  -332 |
+|  -158 |
+|   -95 |
+|  -365 |
+|  -358 |
+|   -69 |
+|  -263 |
+|   -75 |
+|   -74 |
+|    -1 |
+|  -236 |
+|   -28 |
+|  -311 |
+|  -364 |
+|  -275 |
+|  -333 |
+|   -52 |
+|  -376 |
+|  -156 |
+|  -310 |
+|  -276 |
+|  -160 |
+|  -218 |
+|  -341 |
+|   -78 |
+|  -184 |
+|   -14 |
+|  -291 |
+|  -279 |
+|  -248 |
+|     0 |
+|  -199 |
+|  -252 |
+|  -221 |
+|   -23 |
+|  -371 |
+|   -39 |
+|  -355 |
+|     0 |
+|  -211 |
+|  -151 |
+|   -34 |
+|  -209 |
+|  -310 |
+|  -215 |
+|   -76 |
+|  -398 |
+|   -21 |
+|  -206 |
+|  -339 |
+|  -147 |
+|   -47 |
+|   -70 |
+|  -105 |
+|  -340 |
+|  -128 |
+|  -321 |
+|  -101 |
+|  -225 |
+|  -425 |
+|  -248 |
+|  -117 |
+|  -437 |
+|  -379 |
+|  -196 |
+|  -262 |
+|  -236 |
+|  -365 |
+|  -217 |
+|  -213 |
+|   -70 |
+|  -406 |
+|  -414 |
+|  -425 |
+|  -332 |
+|   -13 |
+|  -120 |
+|  -238 |
+|  -238 |
+|  -110 |
+|  -224 |
+|  -116 |
+|  -414 |
+|  -419 |
+|  -309 |
+|  -121 |
+|  -104 |
+|    -9 |
+|  -406 |
+|   -82 |
+|   -72 |
+|  -249 |
+|  -432 |
+|  -380 |
+|   -14 |
+|  -388 |
+|  -403 |
+|  -249 |
+|  -349 |
+|  -480 |
+|  -118 |
+|  -243 |
+|  -285 |
+|     1 |
+|  -126 |
+|   -33 |
+|   -99 |
+|  -241 |
+|  -151 |
+|  -329 |
+|   -64 |
+|   -63 |
+|  -120 |
+|   -75 |
+|  -255 |
+|  -118 |
+|  -177 |
+|  -138 |
+|  -451 |
+|  -306 |
+|  -245 |
+|   -33 |
+|   -55 |
+|   -90 |
+|  -212 |
+|  -301 |
+|  -168 |
+|  -363 |
+|  -314 |
+|  -417 |
+|  -385 |
+|   -52 |
+|  -497 |
+|  -131 |
+|   -71 |
+|  -134 |
+|   -69 |
+|  -138 |
+|  -141 |
+|  -347 |
+|  -358 |
+|  -505 |
+|  -294 |
+|  -288 |
+|  -432 |
+|  -234 |
+|  -439 |
+|  -112 |
+|  -260 |
+|   -31 |
+|  -273 |
+|   -86 |
+|  -362 |
+|  -237 |
+|  -369 |
+|  -442 |
+|  -402 |
+|  -453 |
+|   -30 |
+|  -171 |
+|   -33 |
+|  -170 |
+|   -20 |
+|  -539 |
+|   -93 |
+|  -456 |
+|  -240 |
+|   -10 |
+|  -344 |
+|  -150 |
+|  -262 |
+|  -417 |
+|  -421 |
+|   -44 |
+|   -15 |
+|   -51 |
+|   -69 |
+|  -268 |
+|  -290 |
+|  -344 |
+|  -196 |
+|  -556 |
+|  -519 |
+|  -242 |
+|  -197 |
+|  -546 |
+|   -99 |
+|  -377 |
+|  -225 |
+|  -113 |
+|  -138 |
+|  -120 |
+|  -263 |
+|  -170 |
+|  -452 |
+|  -405 |
+|  -376 |
+|  -551 |
+|  -190 |
+|    -9 |
+|  -224 |
+|  -110 |
+|  -183 |
+|  -454 |
+|  -212 |
+|   -55 |
+|  -264 |
+|  -348 |
+|  -510 |
+|  -152 |
+|   -71 |
+|  -356 |
+|  -424 |
+|  -233 |
+|  -234 |
+|   -10 |
+|  -524 |
+|   -76 |
+|  -251 |
+|  -456 |
+|  -578 |
+|  -348 |
+|  -176 |
+|  -406 |
+|  -173 |
+|  -160 |
+|  -603 |
+|  -129 |
+|  -558 |
+|  -106 |
+|  -535 |
+|  -465 |
+|  -310 |
+|  -569 |
+|  -302 |
+|  -504 |
+|     0 |
+|  -175 |
+|   -59 |
+|  -485 |
+|  -586 |
+|   -88 |
+|  -136 |
+|  -524 |
+|  -164 |
+|   -55 |
+|  -150 |
+|  -191 |
+|   -40 |
+|  -552 |
+|  -386 |
+|  -217 |
+|  -119 |
+|  -250 |
+|  -448 |
+|  -357 |
+|  -485 |
+|  -623 |
+|  -412 |
+|  -202 |
+|  -266 |
+|   -55 |
+|  -256 |
+|  -169 |
+|  -327 |
+|  -165 |
+|  -101 |
+|  -550 |
+|  -434 |
+|  -176 |
+|  -152 |
+|  -518 |
+|  -624 |
+|  -374 |
+|  -305 |
+|  -370 |
+|  -304 |
+|  -362 |
+|  -109 |
+|  -277 |
+|   -53 |
+|  -318 |
+|  -574 |
+|  -338 |
+|  -276 |
+|  -620 |
+|  -306 |
+|  -499 |
+|   -77 |
+|  -122 |
+|  -329 |
+|  -156 |
+|  -654 |
+|  -576 |
+|   -79 |
+|  -498 |
+|    -9 |
+|   -15 |
+|  -445 |
+|  -415 |
+|  -491 |
+|  -641 |
+|  -104 |
+|  -600 |
+|  -126 |
+|  -156 |
+|     0 |
+|   -70 |
+|  -271 |
+|  -162 |
+|     0 |
+|  -640 |
+|  -505 |
+|  -261 |
+|     0 |
+|  -476 |
+|  -555 |
+|  -130 |
+|  -423 |
+|  -360 |
+|  -138 |
+|  -457 |
+|  -674 |
+|  -303 |
+|  -624 |
+|  -513 |
+|  -566 |
+|  -405 |
+|  -406 |
+|  -632 |
+|  -177 |
+|   -66 |
+|  -277 |
+|  -445 |
+|  -117 |
+|  -628 |
+|  -452 |
+|  -156 |
+|  -535 |
+|  -254 |
+|   -44 |
+|  -466 |
+|  -142 |
+|  -414 |
+|  -473 |
+|  -201 |
+|   -85 |
+|  -336 |
+|  -660 |
+|  -607 |
+|  -376 |
+|  -367 |
+|  -582 |
+|  -619 |
+|  -499 |
+|   -89 |
+|  -232 |
+|  -708 |
+|  -731 |
+|  -215 |
+|   -72 |
+|  -159 |
+|  -278 |
+|   -53 |
+|  -257 |
+|  -104 |
+|    -7 |
+|  -745 |
+|  -403 |
+|  -534 |
+|   -17 |
+|  -520 |
+|  -510 |
+|  -353 |
+|  -504 |
+|  -578 |
+|  -729 |
+|  -139 |
+|  -271 |
+|  -181 |
+|  -134 |
+|  -475 |
+|  -251 |
+|  -490 |
+|  -205 |
+|  -675 |
+|  -112 |
+|  -753 |
+|  -256 |
+|  -485 |
+|  -234 |
+|  -654 |
+|  -403 |
+|  -450 |
+|  -658 |
+|  -172 |
+|  -675 |
+|   -54 |
+|  -169 |
+|  -230 |
+|    -1 |
+|  -436 |
+|  -108 |
+|  -660 |
+|  -289 |
+|  -367 |
+|  -314 |
+|   -68 |
+|  -572 |
+|  -586 |
+|  -369 |
+|  -145 |
+|  -543 |
+|  -756 |
+|   -78 |
+|  -490 |
+|  -785 |
+|  -180 |
+|     2 |
+|  -424 |
+|  -159 |
+|  -727 |
+|  -235 |
+|  -645 |
+|   -28 |
+|  -282 |
+|  -489 |
+|  -250 |
+|   -71 |
+|  -682 |
+|  -711 |
+|  -398 |
+|   -55 |
+|  -328 |
+|  -182 |
+|  -166 |
+|  -743 |
+|  -388 |
+|  -334 |
+|  -432 |
+|  -729 |
+|  -360 |
+|  -471 |
+|   -16 |
+|  -602 |
+|  -709 |
+|   -69 |
+|  -269 |
+|  -791 |
+|  -489 |
+|  -322 |
+|  -646 |
+|  -301 |
+|  -159 |
+|  -268 |
+|  -777 |
+|  -456 |
+|  -746 |
+|  -356 |
+|  -809 |
+|  -728 |
+|   -90 |
+|  -302 |
+|  -386 |
+|  -728 |
+|  -656 |
+|   -29 |
+|  -101 |
+|  -728 |
+|   -82 |
+|  -406 |
+|  -675 |
+|   -62 |
+|  -160 |
+|  -617 |
+|  -125 |
+|  -698 |
+|  -120 |
+|  -655 |
+|  -751 |
+|  -284 |
+|  -475 |
+|   -16 |
+|  -420 |
+|  -574 |
+|  -638 |
+|   -38 |
+|  -573 |
+|  -623 |
+|  -747 |
+|  -115 |
+|  -430 |
+|  -591 |
+|  -832 |
+|  -422 |
+|   -40 |
+|  -212 |
+|  -564 |
+|   -71 |
+|  -513 |
+|  -623 |
+|  -503 |
+|  -189 |
+|  -256 |
+|  -728 |
+|  -655 |
+|  -580 |
+|  -508 |
+|  -382 |
+|  -883 |
+|  -885 |
+|  -480 |
+|  -117 |
+|  -407 |
+|  -253 |
+|  -635 |
+|  -244 |
+|  -101 |
+|  -847 |
+|  -857 |
+|  -205 |
+|  -119 |
+|  -756 |
+|  -302 |
+|  -169 |
+|  -277 |
+|  -521 |
+|  -586 |
+|  -472 |
+|  -880 |
+|  -580 |
+|  -825 |
+|  -428 |
+|  -248 |
+|  -846 |
+|  -226 |
+|  -621 |
+|  -413 |
+|  -302 |
+|  -161 |
+|  -177 |
+|  -601 |
+|  -830 |
+|  -275 |
+|  -700 |
+|  -922 |
+|     0 |
+|  -897 |
+|  -764 |
+|  -151 |
+|  -343 |
+|   -10 |
+|  -601 |
+|  -772 |
+|  -574 |
+|  -478 |
+|  -791 |
+|  -244 |
+|    -4 |
+|  -927 |
+|  -601 |
+|  -686 |
+|  -109 |
+|  -786 |
+|  -224 |
+|  -409 |
+|  -725 |
+|  -411 |
+|  -692 |
+|  -886 |
+|  -667 |
+|  -767 |
+|  -773 |
+|  -623 |
+|  -868 |
+|  -319 |
+|  -739 |
+|   -36 |
+|  -309 |
+|  -634 |
+|  -240 |
+|  -790 |
+|  -711 |
+|  -426 |
+|  -426 |
+|  -860 |
+|  -227 |
+|  -677 |
+|   -67 |
+|  -567 |
+|  -621 |
+|  -714 |
+|  -430 |
+|  -914 |
+|  -335 |
+|  -601 |
+|  -205 |
+|  -475 |
+|  -737 |
+|   -60 |
+|   -28 |
+|   -19 |
+|  -221 |
+|  -660 |
+|  -386 |
+|   -67 |
+|  -474 |
+|   -49 |
+|  -488 |
+|  -207 |
+|  -209 |
+|  -178 |
+|  -889 |
+|  -370 |
+|  -180 |
+|  -232 |
+|  -709 |
+|  -861 |
+|  -359 |
+|  -372 |
+|  -591 |
+|   -80 |
+|  -709 |
+|  -340 |
+|  -441 |
+|  -116 |
+|  -156 |
+|  -525 |
+|  -687 |
+|  -604 |
+|   -31 |
+|  -303 |
+|  -425 |
+|  -650 |
+|  -642 |
+|  -606 |
+|  -626 |
+|  -332 |
+|   -26 |
+|  -126 |
+|  -846 |
+|  -672 |
+|   -74 |
+|  -201 |
+|  -256 |
+|  -660 |
+|  -342 |
+|  -184 |
+| -1008 |
+|  -196 |
+|  -757 |
+|  -522 |
+|  -293 |
+|  -241 |
+|  -662 |
+|  -655 |
+|  -617 |
+|  -810 |
+|  -943 |
+|  -295 |
+|  -506 |
+|  -904 |
+| -1038 |
+|  -966 |
+|  -259 |
+| -1025 |
+|  -448 |
+|  -597 |
+|  -210 |
+|   -45 |
+|  -533 |
+|   -48 |
+|  -943 |
+|  -618 |
+|     1 |
+|  -697 |
+| -1049 |
+|  -607 |
+|  -668 |
+|  -164 |
+|  -751 |
+|  -722 |
+|  -940 |
+|  -381 |
+|  -194 |
+|  -671 |
+|  -336 |
+|  -738 |
+|  -712 |
+|  -390 |
+|  -352 |
+|   -35 |
+|  -470 |
+|  -737 |
+|  -715 |
+|  -663 |
+|  -549 |
+|  -598 |
+|  -707 |
+|  -135 |
+|  -277 |
+|  -470 |
+|  -225 |
+|  -742 |
+| -1010 |
+|   -10 |
+|  -134 |
+|     0 |
+|  -724 |
+|  -811 |
+|  -758 |
+|  -869 |
+| -1029 |
+|  -567 |
+|  -889 |
+
+*** 5-1
+
+An urgent interrupt arrives from the CPU: it's trapped in a maze of
+jump instructions, and it would like assistance from any programs with
+spare cycles to help find the exit.
+
+The message includes a list of the offsets for each jump. Jumps are
+relative: -1 moves to the previous instruction, and 2 skips the next
+one. Start at the first instruction in the list. The goal is to follow
+the jumps until one leads outside the list.
+
+In addition, these instructions are a little strange; after each jump,
+the offset of that instruction increases by 1. So, if you come across
+an offset of 3, you would move three instructions forward, but change
+it to a 4 for the next time it is encountered.
+
+For example, consider the following list of jump offsets:
+
+|  0 |
+|  3 |
+|  0 |
+|  1 |
+| -3 |
+
+Positive jumps ("forward") move downward; negative jumps move
+upward. For legibility in this example, these offset values will be
+written all on one line, with the current instruction marked in
+parentheses. The following steps would be taken before an exit is
+found:
+
+    (0) 3  0  1  -3  - before we have taken any steps.
+    (1) 3  0  1  -3  - jump with offset 0 (that is, don't jump at all).
+                       Fortunately, the instruction is then incremented to 1.
+     2 (3) 0  1  -3  - step forward because of the instruction we just modified.
+                       The first instruction is incremented again, now to 2.
+     2  4  0  1 (-3) - jump all the way to the end; leave a 4 behind.
+     2 (4) 0  1  -2  - go back to where we just were; increment -3 to -2.
+     2  5  0  1  -2  - jump 4 steps forward, escaping the maze.
+
+In this example, the exit is reached in 5 steps.
+
+How many steps does it take to reach the exit?
+
+#+BEGIN_SRC awk :stdin maze-input
+  {
+  }
+#+END_SRC
+
+*** 5-2
+
+#+BEGIN_SRC awk :stdin maze-input
+  {
+  }
+#+END_SRC
