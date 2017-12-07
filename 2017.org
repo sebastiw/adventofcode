@@ -1066,9 +1066,8 @@ How many steps does it now take to reach the exit?
       {
           f[i]=$i
       }
-      for(i=1; i<=NF; )
+      for(i=1; i<=NF; steps++)
       {
-          steps++
           if(f[i] >= 3) {
               i+=f[i]--
           }
@@ -1087,6 +1086,9 @@ How many steps does it now take to reach the exit?
 ** Day 6: Memory Reallocation
 
 *** Input
+#+NAME: memory-reallocation-input
+| 4 | 1 | 15 | 12 | 0 | 9 | 9 | 5 | 5 | 8 | 7 | 3 | 14 | 5 | 12 | 3 |
+
 
 *** 6-1
 
@@ -1137,3 +1139,147 @@ redistribution cycle, and so the answer in this example is 5.
 Given the initial block counts in your puzzle input, how many
 redistribution cycles must be completed before a configuration is
 produced that has been seen before?
+
+#+NAME: memory-relocation
+#+BEGIN_SRC awk :stdin memory-reallocation-input
+  function take_highest(v)
+  {
+      max=-1
+      take=-1
+      for(j in v)
+      {
+          take = (v[j] > max ? j : take)
+          max = (v[j] > max ? v[j] : max)
+      }
+      # Reset the given memory cell
+      v[take]=0
+      for(; max > 0; max--)
+      {
+          if(int(take) >= length(v))
+          {
+              take=0
+          }
+          v[++take]++
+      }
+  }
+
+  {
+      for(i=1; i<=NF; i++)
+      {
+          f[i]=$i
+      }
+
+      as_str=$0
+      do
+      {
+          save[as_str]=steps
+          take_highest(f)
+          # Stringify
+          as_str=""
+          for(i in f)
+          {
+              as_str=as_str " " f[i]
+          }
+          steps++
+      } while(!save[as_str])
+  }
+  END {
+      print steps
+      print steps-save[as_str]
+  }
+#+END_SRC
+
+#+RESULTS:
+| 6681 |
+| 2392 |
+
+*** 6-2
+
+Out of curiosity, the debugger would also like to know the size of the
+loop: starting from a state that has already been seen, how many block
+redistribution cycles must be performed before that same state is seen
+again?
+
+In the example above, 2 4 1 2 is seen again after four cycles, and so
+the answer in that example would be 4.
+
+How many cycles are in the infinite loop that arises from the
+configuration in your puzzle input?
+
+#+CALL: memory-relocation()
+
+#+RESULTS:
+| 6681 |
+| 2392 |
+
+** Day 7: Recursive Circus
+
+Wandering further through the circuits of the computer, you come upon
+a tower of programs that have gotten themselves into a bit of
+trouble. A recursive algorithm has gotten out of hand, and now they're
+balanced precariously in a large tower.
+
+One program at the bottom supports the entire tower. It's holding a
+large disc, and on the disc are balanced several more sub-towers. At
+the bottom of these sub-towers, standing on the bottom disc, are other
+programs, each holding their own disc, and so on. At the very tops of
+these sub-sub-sub-...-towers, many programs stand simply keeping the
+disc below them balanced but with no disc of their own.
+
+You offer to help, but first you need to understand the structure of
+these towers. You ask each program to yell out their name, their
+weight, and (if they're holding a disc) the names of the programs
+immediately above them balancing on that disc. You write this
+information down (your puzzle input). Unfortunately, in their panic,
+they don't do this in an orderly fashion; by the time you're done,
+you're not sure which program gave which information.
+
+For example, if your list is the following:
+
+pbga (66)
+xhth (57)
+ebii (61)
+havc (66)
+ktlj (57)
+fwft (72) -> ktlj, cntj, xhth
+qoyq (66)
+padx (45) -> pbga, havc, qoyq
+tknk (41) -> ugml, padx, fwft
+jptl (61)
+ugml (68) -> gyxo, ebii, jptl
+gyxo (61)
+cntj (57)
+
+...then you would be able to recreate the structure of the towers that
+looks like this:
+
+#+BEGIN_EXAMPLE
+                gyxo
+              /
+         ugml - ebii
+       /      \
+      |         jptl
+      |
+      |         pbga
+     /        /
+tknk --- padx - havc
+     \        \
+      |         qoyq
+      |
+      |         ktlj
+       \      /
+         fwft - cntj
+              \
+                xhth
+#+END_EXAMPLE
+
+In this example, tknk is at the bottom of the tower (the bottom
+program), and is holding up ugml, padx, and fwft. Those programs are,
+in turn, holding up other programs; in this example, none of those
+programs are holding up any other programs, and are all the tops of
+their own towers. (The actual tower balancing in front of you is much
+larger.)
+
+Before you're ready to help them, you need to make sure your
+information is correct. What is the name of the bottom program?
+
