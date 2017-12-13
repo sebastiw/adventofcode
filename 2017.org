@@ -373,7 +373,6 @@ What is the first value written that is larger than your puzzle input?
 #+RESULTS:
 : 1
 
-
 ** Day 4: High-Entropy Passphrases
 
 *** passphrase-input
@@ -1088,7 +1087,6 @@ How many steps does it now take to reach the exit?
 *** Input
 #+NAME: memory-reallocation-input
 | 4 | 1 | 15 | 12 | 0 | 9 | 9 | 5 | 5 | 8 | 7 | 3 | 14 | 5 | 12 | 3 |
-
 
 *** 6-1
 
@@ -2308,7 +2306,6 @@ configuration in your puzzle input?
 | hhmwlo (56)                                                                  |
 | icgwppo (84)                                                                 |
 
-
 *** 7-1
 Wandering further through the circuits of the computer, you come upon
 a tower of programs that have gotten themselves into a bit of
@@ -2538,7 +2535,6 @@ weight need to be to balance the entire tower?
 
 Agh. not a nice sweet solution. but it worked.
 diff is 6, so arqoys original weight should have -6
-
 
 ** Day 8: I Heard You Like Registers
 
@@ -4109,9 +4105,7 @@ whitespace you might encounter.
 | 8D                             |
 | 7ADFD64C2A3A4968CF78D1B7FD418D |
 
-
 ** Day 11: Hex Ed
-
 
 *** Input
 #+NAME: hex-ed-input
@@ -6373,7 +6367,6 @@ contains program ID 0.
 For example, suppose you go door-to-door like a travelling salesman
 and record the following list:
 
-#+NAME: test
 | 0 <-> 2       |
 | 1 <-> 1       |
 | 2 <-> 0, 3, 4 |
@@ -6440,7 +6433,6 @@ How many programs are in the group that contains program ID 0?
 
 #+RESULTS:
 : 134
-
 
 *** 12-2
 There are more programs than just the ones in the group containing
@@ -6514,4 +6506,419 @@ How many groups are there in total?
 
 #+RESULTS:
 : 193
+
+** Day 13: Packet Scanners
+
+*** Input
+#+NAME: packet-scanners-input
+| 0: 3   |
+| 1: 2   |
+| 2: 4   |
+| 4: 6   |
+| 6: 4   |
+| 8: 6   |
+| 10: 5  |
+| 12: 6  |
+| 14: 8  |
+| 16: 8  |
+| 18: 8  |
+| 20: 6  |
+| 22: 12 |
+| 24: 8  |
+| 26: 8  |
+| 28: 10 |
+| 30: 9  |
+| 32: 12 |
+| 34: 8  |
+| 36: 12 |
+| 38: 12 |
+| 40: 12 |
+| 42: 14 |
+| 44: 14 |
+| 46: 12 |
+| 48: 12 |
+| 50: 12 |
+| 52: 12 |
+| 54: 14 |
+| 56: 12 |
+| 58: 14 |
+| 60: 14 |
+| 62: 14 |
+| 64: 14 |
+| 70: 10 |
+| 72: 14 |
+| 74: 14 |
+| 76: 14 |
+| 78: 14 |
+| 82: 14 |
+| 86: 17 |
+| 88: 18 |
+| 96: 26 |
+
+*** 13-1
+
+You need to cross a vast firewall. The firewall consists of several
+layers, each with a security scanner that moves back and forth across
+the layer. To succeed, you must not be detected by a scanner.
+
+By studying the firewall briefly, you are able to record (in your
+puzzle input) the depth of each layer and the range of the scanning
+area for the scanner within it, written as depth: range. Each layer
+has a thickness of exactly 1. A layer at depth 0 begins immediately
+inside the firewall; a layer at depth 1 would start immediately after
+that.
+
+For example, suppose you've recorded the following:
+
+0: 3
+1: 2
+4: 4
+6: 4
+
+This means that there is a layer immediately inside the firewall (with
+range 3), a second layer immediately after that (with range 2), a
+third layer which begins at depth 4 (with range 4), and a fourth layer
+which begins at depth 6 (also with range 4). Visually, it might look
+like this:
+
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+Within each layer, a security scanner moves back and forth within its
+range. Each security scanner starts at the top and moves down until it
+reaches the bottom, then moves up until it reaches the top, and
+repeats. A security scanner takes one picosecond to move one
+step. Drawing scanners as S, the first few picoseconds look like this:
+
+
+Picosecond 0:
+ 0   1   2   3   4   5   6
+[S] [S] ... ... [S] ... [S]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+Picosecond 1:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+Picosecond 2:
+ 0   1   2   3   4   5   6
+[ ] [S] ... ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+Picosecond 3:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] ... [ ]
+[S] [S]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [S]     [S]
+
+Your plan is to hitch a ride on a packet about to move through the
+firewall. The packet will travel along the top of each layer, and it
+moves at one layer per picosecond. Each picosecond, the packet moves
+one layer forward (its first move takes it into layer 0), and then the
+scanners move one step. If there is a scanner at the top of the layer
+as your packet enters it, you are caught. (If a scanner moves into the
+top of its layer while you are there, you are not caught: it doesn't
+have time to notice you before you leave.) If you were to do this in
+the configuration above, marking your current position with
+parentheses, your passage through the firewall would look like this:
+
+Initial state:
+ 0   1   2   3   4   5   6
+[S] [S] ... ... [S] ... [S]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+Picosecond 0:
+ 0   1   2   3   4   5   6
+(S) [S] ... ... [S] ... [S]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+( ) [ ] ... ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 1:
+ 0   1   2   3   4   5   6
+[ ] ( ) ... ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] (S) ... ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+
+Picosecond 2:
+ 0   1   2   3   4   5   6
+[ ] [S] (.) ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] (.) ... [ ] ... [ ]
+[S] [S]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [S]     [S]
+
+
+Picosecond 3:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... (.) [ ] ... [ ]
+[S] [S]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [S]     [S]
+
+ 0   1   2   3   4   5   6
+[S] [S] ... (.) [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[ ]             [S]     [S]
+                [ ]     [ ]
+
+
+Picosecond 4:
+ 0   1   2   3   4   5   6
+[S] [S] ... ... ( ) ... [ ]
+[ ] [ ]         [ ]     [ ]
+[ ]             [S]     [S]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... ( ) ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 5:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] (.) [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [S] ... ... [S] (.) [S]
+[ ] [ ]         [ ]     [ ]
+[S]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 6:
+ 0   1   2   3   4   5   6
+[ ] [S] ... ... [S] ... (S)
+[ ] [ ]         [ ]     [ ]
+[S]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] ... ( )
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+In this situation, you are caught in layers 0 and 6, because your
+packet entered the layer when its scanner was at the top when you
+entered it. You are not caught in layer 1, since the scanner moved
+into the top of the layer once you were already there.
+
+The severity of getting caught on a layer is equal to its depth
+multiplied by its range. (Ignore layers in which you do not get
+caught.) The severity of the whole trip is the sum of these values. In
+the example above, the trip severity is 0*3 + 6*4 = 24.
+
+Given the details of the firewall you've recorded, if you leave
+immediately, what is the severity of your whole trip?
+
+| 0: 3 |
+| 1: 2 |
+| 4: 4 |
+| 6: 4 |
+
+#+BEGIN_SRC awk :stdin packet-scanners-input
+  BEGIN {
+      FS="[: ]+"
+  }
+  $1%(2*$2-2) == 0 {
+      sum+=$1*$2
+  }
+  END {
+      print sum
+  }
+#+END_SRC
+
+#+RESULTS:
+: 1612
+
+*** 13-2
+
+Now, you need to pass through the firewall without being caught -
+easier said than done.
+
+You can't control the speed of the packet, but you can delay it any
+number of picoseconds. For each picosecond you delay the packet before
+beginning your trip, all security scanners move one step. You're not
+in the firewall during this time; you don't enter layer 0 until you
+stop delaying the packet.
+
+In the example above, if you delay 10 picoseconds (picoseconds 0 - 9),
+you won't get caught:
+
+State after delaying:
+ 0   1   2   3   4   5   6
+[ ] [S] ... ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+Picosecond 10:
+ 0   1   2   3   4   5   6
+( ) [S] ... ... [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+( ) [ ] ... ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 11:
+ 0   1   2   3   4   5   6
+[ ] ( ) ... ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[S] (S) ... ... [S] ... [S]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 12:
+ 0   1   2   3   4   5   6
+[S] [S] (.) ... [S] ... [S]
+[ ] [ ]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] (.) ... [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+
+Picosecond 13:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... (.) [ ] ... [ ]
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [S] ... (.) [ ] ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+
+Picosecond 14:
+ 0   1   2   3   4   5   6
+[ ] [S] ... ... ( ) ... [ ]
+[ ] [ ]         [ ]     [ ]
+[S]             [S]     [S]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... ( ) ... [ ]
+[S] [S]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [S]     [S]
+
+
+Picosecond 15:
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] (.) [ ]
+[S] [S]         [ ]     [ ]
+[ ]             [ ]     [ ]
+                [S]     [S]
+
+ 0   1   2   3   4   5   6
+[S] [S] ... ... [ ] (.) [ ]
+[ ] [ ]         [ ]     [ ]
+[ ]             [S]     [S]
+                [ ]     [ ]
+
+
+Picosecond 16:
+ 0   1   2   3   4   5   6
+[S] [S] ... ... [ ] ... ( )
+[ ] [ ]         [ ]     [ ]
+[ ]             [S]     [S]
+                [ ]     [ ]
+
+ 0   1   2   3   4   5   6
+[ ] [ ] ... ... [ ] ... ( )
+[S] [S]         [S]     [S]
+[ ]             [ ]     [ ]
+                [ ]     [ ]
+
+Because all smaller delays would get you caught, the fewest number of
+picoseconds you would need to delay to get through safely is 10.
+
+What is the fewest number of picoseconds that you need to delay the
+packet to pass through the firewall without being caught?
+
+#+BEGIN_SRC awk :stdin packet-scanners-input
+  BEGIN {
+      FS="[: ]+"
+  }
+  {
+      line[$1]=$2
+  }
+  END {
+      delay=0
+      do {
+          fail=0
+          for(i in line)
+          {
+              if((i+delay)%(2*line[i]-2) == 0)
+              {
+                  delay++
+                  fail=1
+                  break
+              }
+          }
+      } while(fail)
+      print delay
+  }
+#+END_SRC
+
+#+RESULTS:
+: 3907994
 
