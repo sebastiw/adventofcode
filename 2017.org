@@ -7236,10 +7236,10 @@ How many regions are present given your key string?
                   {
                       if(!group_vertically[j])
                       {
-                          groups++
-                          group_vertically[j]=groups
+                          groups[++gr]=1
+                          group_vertically[j]=gr
                       }
-                      group_horizontally=groups
+                      group_horizontally=group_vertically[j]
                   }
                   else if(group_horizontally)
                   {
@@ -7249,9 +7249,9 @@ How many regions are present given your key string?
                       }
                       else if(group_vertically[j] != group_horizontally)
                       {
-                          group_horizontally=group_vertically[j]
                           # Not a new group
-                          groups--
+                          delete groups[group_horizontally]
+                          group_horizontally=group_vertically[j]
                           # Back down; set all previous values on this
                           # line to the same group
                           for(k=j; k>=1 && char[i][k] == "#"; k--)
@@ -7269,16 +7269,12 @@ How many regions are present given your key string?
           }
           group_horizontally=0
       }
-      print groups
+      print length(groups)-1
   }
 #+END_SRC
 
 #+RESULTS:
-: 661
-
-661 too low
-2148 too high
-
+: 1182
 
 ** Day 15: Dueling Generators
 
