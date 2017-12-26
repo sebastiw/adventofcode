@@ -18168,6 +18168,191 @@ them to do so), how many times did program 1 send a value?
 #+RESULTS:
 : 5969
 
+** Day 19: A Series of Tubes
+
+*** Input
+[[file:///home/seba/git/adventofcode/19.input]]
+
+*** 19-1
+
+Somehow, a network packet got lost and ended up here. It's trying to
+follow a routing diagram (your puzzle input), but it's confused about
+where to go.
+
+Its starting point is just off the top of the diagram. Lines (drawn
+with |, -, and +) show the path it needs to take, starting by going
+down onto the only line connected to the top of the diagram. It needs
+to follow this path until it reaches the end (located somewhere within
+the diagram) and stop there.
+
+Sometimes, the lines cross over each other; in these cases, it needs
+to continue going the same direction, and only turn left or right when
+there's no other option. In addition, someone has left letters on the
+line; these also don't change its direction, but it can use them to
+keep track of where it's been. For example:
+
+#+BEGIN_EXAMPLE
+     |
+     |  +--+
+     A  |  C
+ F---|----E|--+
+     |  |  |  D
+     +B-+  +--+
+#+END_EXAMPLE
+
+Given this diagram, the packet needs to take the following path:
+
+    Starting at the only line touching the top of the diagram, it must
+    go down, pass through A, and continue onward to the first +.
+    Travel right, up, and right, passing through B in the process.
+    Continue down (collecting C), right, and up (collecting D).
+    Finally, go all the way left through E and stopping at F.
+
+Following the path to the end, the letters it sees on its path are ABCDEF.
+
+The little packet looks up at you, hoping you can help it find the
+way. What letters will it see (in the order it would see them) if it
+follows the path? (The routing diagram is very wide; make sure you
+view it without line wrapping.)
+
+#+NAME: series-of-tubes
+#+BEGIN_SRC awk :in-file /home/seba/git/adventofcode/19.input
+  function nextx (currentx, currentdir) {
+      if(currentdir == 3) {
+          return currentx-1
+      } else if(currentdir == 4) {
+          return currentx+1
+      }
+      return currentx
+  }
+  function nexty(currenty, currentdir) {
+      if(currentdir == 1) {
+          return currenty-1
+      } else if(currentdir == 2) {
+          return currenty+1
+      }
+      return currenty
+  }
+
+  function next_direction(currentx, currenty, currentdir) {
+      # DIRECTIONS
+      # 1 = up
+      # 2 = down
+      # 3 = left
+      # 4 = right
+      if(currentdir == 1) {
+          if(a[currentx-1][currenty] ~ /[A-Z+-]/) {
+              return 3
+          } else if (a[currentx+1][currenty] ~ /[A-Z+-]/) {
+              return 4
+          }
+      } else if (currentdir == 2) {
+          if(a[currentx-1][currenty] ~ /[A-Z+-]/) {
+              return 3
+          } else if (a[currentx+1][currenty] ~ /[A-Z+-]/) {
+              return 4
+          }
+      } else if (currentdir == 3) {
+          if(a[currentx][currenty-1] ~ /[A-Z+|]/) {
+              return 1
+          } else if (a[currentx][currenty+1] ~ /[A-Z+|]/) {
+              return 2
+          }
+      } else if (currentdir == 4) {
+          if(a[currentx][currenty-1] ~ /[A-Z+|]/) {
+              return 1
+          } else if (a[currentx][currenty+1] ~ /[A-Z+|]/) {
+              return 2
+          }
+      }
+
+      print "failedd"
+      return -1
+  }
+
+  BEGIN {
+      FS=""
+      # DIRECTIONS
+      # 1 = up
+      # 2 = down
+      # 3 = left
+      # 4 = right
+  }
+  {
+      for(i=1; i<NF; i++)
+      {
+          if(NR == 1 && $i == "|") {
+              start=i
+          }
+          a[i][NR]=$i
+      }
+  }
+  END {
+      currx=start
+      curry=1
+      currdir=2
+      while(currx >= 1 && currx <= NF && curry >= 1 && curry <= NR) {
+          if(a[currx][curry] ~ /[A-Z]/) {
+              letters[++i]=a[currx][curry]
+          } else if(a[currx][curry] == "+") {
+              currdir=next_direction(currx, curry, currdir)
+          } else if (a[currx][curry] == " ") {
+              break
+          }
+          currx=nextx(currx, currdir)
+          curry=nexty(curry, currdir)
+          steps++
+      }
+
+      str=""
+      for(i in letters) {
+          str=(str letters[i])
+      }
+      print str
+      print steps
+  }
+#+END_SRC
+
+#+RESULTS: series-of-tubes
+| DWNBGECOMY |
+|      17228 |
+
+** 19-2
+
+The packet is curious how many steps it needs to go.
+
+For example, using the same routing diagram from the example above...
+
+#+BEGIN_EXAMPLE
+     |          
+     |  +--+    
+     A  |  C    
+ F---|--|-E---+ 
+     |  |  |  D 
+     +B-+  +--+ 
+#+END_EXAMPLE
+
+...the packet would go:
+
+    6 steps down (including the first line at the top of the diagram).
+    3 steps right.
+    4 steps up.
+    3 steps right.
+    4 steps down.
+    3 steps right.
+    2 steps up.
+    13 steps left (including the F it stops on).
+
+This would result in a total of 38 steps.
+
+How many steps does the packet need to go?
+
+#+CALL: series-of-tubes()
+
+#+RESULTS:
+| DWNBGECOMY |
+|      17228 |
+
 ** Day 21: Fractal Art
 
 *** Input
