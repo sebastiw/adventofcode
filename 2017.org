@@ -20589,3 +20589,145 @@ watched the instructions and figure out it runs the following program:
 #+RESULTS:
 : 903
 
+** Day 24: Electromagnetic Moat
+
+*** Input
+#+NAME: electromagnetic-moat-input
+| 32/31 |
+| 2/2 |
+| 0/43 |
+| 45/15 |
+| 33/24 |
+| 20/20 |
+| 14/42 |
+| 2/35 |
+| 50/27 |
+| 2/17 |
+| 5/45 |
+| 3/14 |
+| 26/1 |
+| 33/38 |
+| 29/6 |
+| 50/32 |
+| 9/48 |
+| 36/34 |
+| 33/50 |
+| 37/35 |
+| 12/12 |
+| 26/13 |
+| 19/4 |
+| 5/5 |
+| 14/46 |
+| 17/29 |
+| 45/43 |
+| 5/0 |
+| 18/18 |
+| 41/22 |
+| 50/3 |
+| 4/4 |
+| 17/1 |
+| 40/7 |
+| 19/0 |
+| 33/7 |
+| 22/48 |
+| 9/14 |
+| 50/43 |
+| 26/29 |
+| 19/33 |
+| 46/31 |
+| 3/16 |
+| 29/46 |
+| 16/0 |
+| 34/17 |
+| 31/7 |
+| 5/27 |
+| 7/4 |
+| 49/49 |
+| 14/21 |
+| 50/9 |
+| 14/44 |
+| 29/29 |
+| 13/38 |
+| 31/11 |
+
+*** 24-1
+
+The CPU itself is a large, black building surrounded by a bottomless
+pit. Enormous metal tubes extend outward from the side of the building
+at regular intervals and descend down into the void. There's no way to
+cross, but you need to get inside.
+
+No way, of course, other than building a bridge out of the magnetic
+components strewn about nearby.
+
+Each component has two ports, one on each end. The ports come in all
+different types, and only matching types can be connected. You take an
+inventory of the components by their port types (your puzzle
+input). Each port is identified by the number of pins it uses; more
+pins mean a stronger connection for your bridge. A 3/7 component, for
+example, has a type-3 port on one side, and a type-7 port on the
+other.
+
+Your side of the pit is metallic; a perfect surface to connect a
+magnetic, zero-pin port. Because of this, the first port you use must
+be of type 0. It doesn't matter what type of port you end with; your
+goal is just to make the bridge as strong as possible.
+
+The strength of a bridge is the sum of the port types in each
+component. For example, if your bridge is made of components 0/3, 3/7,
+and 7/4, your bridge has a strength of 0+3 + 3+7 + 7+4 = 24.
+
+For example, suppose you had the following components:
+
+#+NAME: test
+| 0/2 |
+| 2/2 |
+| 2/3 |
+| 3/4 |
+| 3/5 |
+| 0/1 |
+| 10/1 |
+| 9/10 |
+
+With them, you could make the following valid bridges:
+
+    0/1
+    0/1--10/1
+    0/1--10/1--9/10
+    0/2
+    0/2--2/3
+    0/2--2/3--3/4
+    0/2--2/3--3/5
+    0/2--2/2
+    0/2--2/2--2/3
+    0/2--2/2--2/3--3/4
+    0/2--2/2--2/3--3/5
+
+(Note how, as shown by 10/1, order of ports within a component doesn't
+matter. However, you may only use each port on a component once.)
+
+Of these bridges, the strongest one is 0/1--10/1--9/10; it has a
+strength of 0+1 + 1+10 + 10+9 = 31.
+
+What is the strength of the strongest bridge you can make with the
+components you have available?
+
+#+BEGIN_SRC awk :stdin electromagnetic-moat-input
+  BEGIN {
+      FS="/"
+  }
+  $1 == "0" {
+      starts[NR]=$0
+  }
+  {
+      part[$0]=1
+  }
+  END {
+      for(i in starts) {
+          print starts[i]
+      }
+  }
+#+END_SRC
+
+#+RESULTS:
+
