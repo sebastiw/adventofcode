@@ -18171,7 +18171,7 @@ them to do so), how many times did program 1 send a value?
 ** Day 19: A Series of Tubes
 
 *** Input
-[[file:///home/seba/git/adventofcode/19.input]]
+[[file:///home/seba/git/adventofcode/2017/19.input]]
 
 *** 19-1
 
@@ -18216,7 +18216,7 @@ follows the path? (The routing diagram is very wide; make sure you
 view it without line wrapping.)
 
 #+NAME: series-of-tubes
-#+BEGIN_SRC awk :in-file /home/seba/git/adventofcode/19.input
+#+BEGIN_SRC awk :in-file /home/seba/git/adventofcode/2017/19.input
   function nextx (currentx, currentdir) {
       if(currentdir == 3) {
           return currentx-1
