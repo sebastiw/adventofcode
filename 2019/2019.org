@@ -90,7 +90,7 @@ fuel? (Calculate the fuel requirements for each module separately,
 then add them all up at the end.)
 
 #+NAME: extra-module-weight
-#+BEGIN_SRC awk :in-file /home/seba/git/adventofcode/2019/1.input
+#+BEGIN_SRC awk :in-file 1.input
   function extra_fuel(start_weight)
   {
       fuel=int(start_weight/3)-2
@@ -202,7 +202,7 @@ after the program halts?
 
 
 #+NAME: op-codes
-#+BEGIN_SRC awk :cmd-line -F"," :in-file /home/seba/git/adventofcode/2019/2.input
+#+BEGIN_SRC awk :cmd-line -F"," :in-file 2.input
   BEGIN {
       RS=","
   }
@@ -291,7 +291,7 @@ output 19690720. What is 100 * noun + verb? (For example, if noun=12
 and verb=2, the answer would be 1202.)
 
 #+NAME: op-codes-2
-#+BEGIN_SRC awk :var want=19690720 :cmd-line -F"," :in-file /home/seba/git/adventofcode/2019/2.input
+#+BEGIN_SRC awk :var want=19690720 :cmd-line -F"," :in-file 2.input
   function exec(val1, val2, memory,        mem, i) {
       for(addr in memory) {
           mem[addr]=memory[addr]
@@ -350,3 +350,310 @@ and verb=2, the answer would be 1202.)
 | Memory[2]         |       47 |
 | Leftover          |        0 |
 | 100*Mem[1]+Mem[2] |     4847 |
+
+* Day 3: Crossed Wires
+
+** 3-1
+
+The gravity assist was successful, and you're well on your way to the
+Venus refuelling station. During the rush back on Earth, the fuel
+management system wasn't completely installed, so that's next on the
+priority list.
+
+Opening the front panel reveals a jumble of wires. Specifically, two
+wires are connected to a central port and extend outward on a
+grid. You trace the path each wire takes as it leaves the central
+port, one wire per line of text (your puzzle input).
+
+The wires twist and turn, but the two wires occasionally cross
+paths. To fix the circuit, you need to find the intersection point
+closest to the central port. Because the wires are on a grid, use the
+Manhattan distance for this measurement. While the wires do
+technically cross right at the central port where they both start,
+this point does not count, nor does a wire count as crossing with
+itself.
+
+For example, if the first wire's path is R8,U5,L5,D3, then starting
+from the central port (o), it goes right 8, up 5, left 5, and finally
+down 3:
+
+...........
+...........
+...........
+....+----+.
+....|....|.
+....|....|.
+....|....|.
+.........|.
+.o-------+.
+...........
+
+Then, if the second wire's path is U7,R6,D4,L4, it goes up 7, right 6,
+down 4, and left 4:
+
+...........
+.+-----+...
+.|.....|...
+.|..+--X-+.
+.|..|..|.|.
+.|.-X--+.|.
+.|..|....|.
+.|.......|.
+.o-------+.
+...........
+
+These wires cross at two locations (marked X), but the lower-left one
+is closer to the central port: its distance is 3 + 3 = 6.
+
+Here are a few more examples:
+
+    R75,D30,R83,U83,L12,D49,R71,U7,L72
+    U62,R66,U55,R34,D71,R55,D58,R83 = distance 159
+    R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+    U98,R91,D20,R16,D67,R40,U7,R15,U6,R7 = distance 135
+
+What is the Manhattan distance from the central port to the closest
+intersection?
+
+#+NAME: crossed-wires
+#+BEGIN_SRC awk :cmd-line -F"," :in-file 3.input
+  function abs(v) { return v < 0 ? -v : v }
+
+  function mark_pos(iy, ix) {
+      # print "MARK",iy,ix
+      switch(grid[iy][ix]) {
+          case 0:
+              grid[iy][ix]=NR
+              break
+          case "x":
+              break
+          default:
+              if(grid[iy][ix] != NR) {
+                  grid[iy][ix]="x"
+              }
+              break
+      }
+  }
+
+  {
+      currx=0
+      curry=0
+      grid[0][0]=0
+
+      for(i=1; i <= NF; i++)
+      {
+          direction=substr($i, 1, 1)
+          distance=substr($i, 2)
+          y=curry
+          x=currx
+          switch(direction) {
+              case "U":
+                  for(; y<(curry+distance); ++y) {
+                      mark_pos(y, currx)
+                  }
+                  break
+              case "D":
+                  for(; y>(curry-distance); --y) {
+                      mark_pos(y, currx)
+                  }
+                  break
+              case "R":
+                  for(; x<(currx+distance); ++x) {
+                      mark_pos(curry, x)
+                  }
+                  break
+              case "L":
+                  for(; x>(currx-distance); --x) {
+                      mark_pos(curry, x)
+                  }
+                  break
+          }
+          curry=y
+          currx=x
+      }
+  }
+  END {
+      minx=1000000
+      miny=1000000
+
+      for(y in grid) {
+          for(x in grid[y]) {
+              if(grid[y][x] == "x") {
+                  if(abs(y)+abs(x) < abs(miny)+abs(minx))
+                  {
+                      miny=y
+                      minx=x
+                  }
+              }
+          }
+      }
+      print abs(miny)+abs(minx)
+  }
+#+END_SRC
+
+#+RESULTS: crossed-wires
+: 1084
+
+** 3-2
+
+It turns out that this circuit is very timing-sensitive; you actually
+need to minimize the signal delay.
+
+To do this, calculate the number of steps each wire takes to reach
+each intersection; choose the intersection where the sum of both
+wires' steps is lowest. If a wire visits a position on the grid
+multiple times, use the steps value from the first time it visits that
+position when calculating the total value of a specific intersection.
+
+The number of steps a wire takes is the total number of grid squares
+the wire has entered to get to that location, including the
+intersection being considered. Again consider the example from above:
+
+...........
+.+-----+...
+.|.....|...
+.|..+--X-+.
+.|..|..|.|.
+.|.-X--+.|.
+.|..|....|.
+.|.......|.
+.o-------+.
+...........
+
+In the above example, the intersection closest to the central port is
+reached after 8+5+5+2 = 20 steps by the first wire and 7+6+4+3 = 20
+steps by the second wire for a total of 20+20 = 40 steps.
+
+However, the top-right intersection is better: the first wire takes
+only 8+5+2 = 15 and the second wire takes only 7+6+2 = 15, a total of
+15+15 = 30 steps.
+
+Here are the best steps for the extra examples from above:
+
+    R75,D30,R83,U83,L12,D49,R71,U7,L72
+    U62,R66,U55,R34,D71,R55,D58,R83 = 610 steps
+    R98,U47,R26,D63,R33,U87,L62,D20,R33,U53,R51
+    U98,R91,D20,R16,D67,R40,U7,R15,U6,R7 = 410 steps
+
+What is the fewest combined steps the wires must take to reach an
+intersection?
+
+#+NAME: crossed-wires-2
+#+BEGIN_SRC awk :cmd-line -F"," :in-file 3.input
+  function abs(v) { return v < 0 ? -v : v }
+  function check_pos(iy, ix) {
+      return grid[iy][ix]
+  }
+
+
+  function mark_pos(mark, iy, ix) {
+      # print "MARK",iy,ix
+      if(grid[iy][ix] == 0) {
+          grid[iy][ix]=mark
+      }
+  }
+
+  {
+      currx=0
+      curry=0
+      grid[0][0]=0
+      dis=0
+  }
+
+  NR == 1 {
+      for(i=1; i <= NF; i++)
+      {
+          direction=substr($i, 1, 1)
+          distance=substr($i, 2)
+          y=curry
+          x=currx
+          switch(direction) {
+              case "U":
+                  for(; y<(curry+distance); ++y) {
+                      mark_pos(++dis, y, currx)
+                  }
+                  break
+              case "D":
+                  for(; y>(curry-distance); --y) {
+                      mark_pos(++dis, y, currx)
+                  }
+                  break
+              case "R":
+                  for(; x<(currx+distance); ++x) {
+                      mark_pos(++dis, curry, x)
+                  }
+                  break
+              case "L":
+                  for(; x>(currx-distance); --x) {
+                      mark_pos(++dis, curry, x)
+                  }
+                  break
+          }
+          curry=y
+          currx=x
+      }
+  }
+
+  NR == 2 {
+      min_dis=1000000
+      for(i=1; i <= NF; i++)
+      {
+          direction=substr($i, 1, 1)
+          distance=substr($i, 2)
+          y=curry
+          x=currx
+          switch(direction) {
+              case "U":
+                  for(; y<(curry+distance); ++y) {
+                      prev_dis=check_pos(y, currx)
+                      a_sum=dis+prev_dis
+                      if(prev_dis && a_sum < min_dis) {
+                          min_dis=a_sum
+                      }
+                      ++dis
+                  }
+                  break
+              case "D":
+                  for(; y>(curry-distance); --y) {
+                      prev_dis=check_pos(y, currx)
+                      a_sum=dis+prev_dis
+                      if(prev_dis && a_sum < min_dis) {
+                          min_dis=a_sum
+                      }
+                      ++dis
+                  }
+                  break
+              case "R":
+                  for(; x<(currx+distance); ++x) {
+                      prev_dis=check_pos(curry, x)
+                      a_sum=dis+prev_dis
+                      if(prev_dis && a_sum < min_dis) {
+                          min_dis=a_sum
+                      }
+                      ++dis
+                  }
+                  break
+              case "L":
+                  for(; x>(currx-distance); --x) {
+                      prev_dis=check_pos(curry, x)
+                      a_sum=dis+prev_dis
+                      if(prev_dis && a_sum < min_dis) {
+                          min_dis=a_sum
+                      }
+                      ++dis
+                  }
+                  break
+          }
+          curry=y
+          currx=x
+      }
+  }
+
+  END {
+      # Off-by-one
+      print min_dis-1
+  }
+#+END_SRC
+
+#+RESULTS: crossed-wires-2
+: 9240
