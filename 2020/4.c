@@ -104,17 +104,14 @@ int valid_pass_2(char byr[], char iyr[], char eyr[], char hgt[], char hcl[], cha
   } else {
     int byri = strtol(byr, NULL, 10);
     if(1920 > byri || byri > 2002) {
-      printf("discarding because byr %d\n", byri);
       return 0;
     }
     int iyri = strtol(iyr, NULL, 10);
     if(2010 > iyri || iyri > 2020) {
-      printf("discarding because iyr %d\n", iyri);
       return 0;
     }
     int eyri = strtol(eyr, NULL, 10);
     if(2020 > eyri || eyri > 2030) {
-      printf("discarding because eyr %d\n", eyri);
       return 0;
     }
     int hgti = strtol(hgt, NULL, 10);
@@ -122,40 +119,32 @@ int valid_pass_2(char byr[], char iyr[], char eyr[], char hgt[], char hcl[], cha
     hgtu[0] = hgt[strlen(hgt)-2];
     hgtu[1] = hgt[strlen(hgt)-1];
     if(strcmp("cm", hgtu) != 0 && strcmp("in", hgtu) != 0) {
-      printf("discarding because hgt %s not cm/in\n", hgt);
       return 0;
     }
     if((150 > hgti || hgti > 193) && strcmp("cm", hgtu) == 0) {
-      printf("discarding because cm %d\n", hgti);
       return 0;
     }
     if((59 > hgti || hgti > 76) && strcmp("in", hgtu) == 0) {
-      printf("discarding because in %d\n", hgti);
       return 0;
     }
 
     if('#' != hcl[0] || strlen(hcl) != 7) {
-      printf("discarding because hcl (%s) not # or length 7\n", hcl);
       return 0;
     }
     long hcll = strtol(*(&hcl)+1, NULL, 16);
     if(0 > hcll || hcll > 0xffffff) {
-      printf("discarding because hcl: %d\n", hcll);
       return 0;
     }
 
     if(strcmp("amb", ecl) != 0 && strcmp("blu", ecl) != 0 && strcmp("brn", ecl) != 0  && strcmp("gry", ecl) != 0 && strcmp("grn", ecl) != 0 && strcmp("hzl", ecl) != 0 && strcmp("oth", ecl) != 0) {
-      printf("discarding because ecl %s\n", ecl);
       return 0;
     }
 
     if(strlen(pid) != 9) {
-      printf("discarding because pid length\n");
       return 0;
     }
     long long pidll = strtoll(pid, NULL, 10);
     if(0 > pidll || pidll > 999999999) {
-      printf("discarding because pidll = %d\n", pidll);
       return 0;
     }
     return 1;
