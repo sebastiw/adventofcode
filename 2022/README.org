@@ -1,0 +1,345 @@
+* COBOL notes
+
+All COBOL implementations allow the use of both upper and lower case letters in program
+coding. GnuCOBOL is completely insensitive to the case used when writing reserved words
+or user-defined names
+
+Copybooks
+A Copybook is a segment of program code that may be utilized by multiple programs simply
+by having those programs use the COPY statement to import that code. This code may define
+files, data structures or procedural code.
+
+** References
+
+   https://gnucobol.sourceforge.io/guides.html
+   - Programmers Guide
+   - Quick Reference
+   - Sample Programs
+
+
+*** Syntax diagram conventions
+
+    Syntax of the GnuCOBOL language will be described in special
+    syntax diagrams using the following syntactical-description
+    techniques:
+
+
+    MANDATORY-RESERVED-WORD
+    ~~~~~~~~~~~~~~~~~~~~~~~
+
+    Reserved words of the COBOL language will appear in UPPER-CASE. When they
+    appear underlined, as this one is, they are required reserved words.
+
+    OPTIONAL-RESERVED-WORD
+
+    When reserved words appear without underlining, as this one is,
+    they are optional; such reserved words are available in the
+    language syntax merely to improve read- ability — their presence
+    or absence has no effect upon the program.
+
+    ABBREVIATION
+    ~~~~
+
+    When only a portion of a reserved word is underlined, it indicates
+    that the word may either be coded in its full form or may be
+    abbreviated to the portion that is underlined.
+
+    substitutable-items
+
+    Generic terms representing user-defined substitutable items will
+    be shown entirely in lower-case in syntax diagrams. When such
+    items are referenced in text, they will appear as
+    substitutable-items.
+
+    Complex-Syntax-Clause
+
+    Items appearing in Mixed Case within a syntax diagram represent
+    complex clauses of other syntax elements that may appear in that
+    position. Some COBOL syntax gets quite complicated, and using a
+    convention such as this significantly reduces the complexity of a
+    syntax diagram. When such items are referenced in text, they will
+    appear as Complex-Syntax-Clause.
+
+    [ ]
+
+    Square bracket meta characters on syntax diagrams document
+    language syntax that is optional. The [] characters themselves
+    should not be coded. If a syntax diagram contains ‘a [b] c’, the
+    ‘a’ and ‘c’ syntax elements are mandatory but the ‘b’ element is
+    optional.
+
+    |
+
+    Vertical bar meta characters on syntax diagrams document simple
+    choices. The | character itself should not be coded. If a syntax
+    diagram contains ‘a|b|c’, exactly one of the items ‘a’, ‘b’ or ‘c’
+    must be selected.
+
+    { xxxxxx }
+    { yyyyyy }
+    { zzzzzz }
+
+    A vertical list of items, bounded by multiple brace characters, is
+    another way of signifying a choice between a series of items where
+    exactly one item must be selected.  This form is used to show
+    choices when one or more of the selections is more complex than
+    just a single word, or when there are too many choices to present
+    horizontally with ‘|’ meta characters.
+
+    | xxxxxx |
+    | yyyyyy |
+    | zzzzzz |
+
+    A vertical list of items, bounded by multiple vertical bar
+    characters, signifies a choice between a series of items where one
+    or more of the choices could be selected.
+
+    ...
+
+    The ... meta character sequence signifies that the syntax element
+    immediately pre- ceding it may be repeated. The ... sequence
+    itself should not be coded. If a syntax diagram contains a b... c,
+    syntax element ‘a’ must be followed by at least one ‘b’ element
+    (possibly more) and the entire sequence must be terminated by a
+    ‘c’ syntax element.
+
+    { }
+
+    The braces (‘{’ and ‘}’) meta characters may be used to group a
+    sequence of syntax elements together so that they may be treated
+    as a single entity. The {} characters themselves should not be
+    coded. These are typically used in combination with the ‘|’ or
+    ‘...’ meta characters.
+
+    $*^()-+=:"’<,>./
+
+    Any of these characters appearing within a syntax diagram are to
+    be interpreted literally, and are characters that must be coded —
+    where allowed — in the statement whose format is being
+    described. Note that a ‘.’ character is a literal character that
+    must be coded on a statement whereas a ‘...’ symbol is the meta
+    character sequence described above.
+
+*** Format of program source lines
+
+    1-6 Sequence Number Area
+
+    Historically, back in the days when punched-cards were used to
+    submit COBOL program source to a COBOL compiler, this part of a
+    COBOL statement was reserved for a six-digit sequence
+    number. While the contents of this area are ignored by COBOL
+    compilers, it existed so that a program actually punched on
+    80-character cards could — if the card deck were dropped on the
+    floor — be run through a card sorter machine and restored to its
+    proper sequence.
+
+    7 Indicator Area
+
+    Column 7 serves as an indicator in which one of five possible
+    values will appear — space, D (or d), - (dash), / or *. The
+    meanings of these characters are as follows: space No special
+    meaning — this is the normal character that will appear in this
+    area.
+
+      D/d
+
+      The line contains a valid GnuCOBOL statement that is
+      normally treated as a comment unless the program is being
+      compiled in debugging mode.
+
+      *
+
+      The line is a comment.
+
+      /
+
+      The line is a comment that will also force a page eject in the
+      compilation listing. While GnuCOBOL will honour such a line as a
+      comment, it will not form-feed any generated listing.
+
+      -
+
+      The line is a continuation of the previous line. These are
+      needed only when an alphanumeric literal (quoted character
+      string), reserved word or user-defined word are being split
+      across lines.
+
+    8-11 Area A
+
+    Language DIVISION, SECTION and paragraph section headers must
+    begin in Area A, as must the level numbers 01, 77 in data
+    description entries and the FD and SD file and SORT description
+    headers.
+
+    12-72 Area B
+
+    All other COBOL programming language components are coded in these
+    columns.
+
+    73-80 Program Name Area
+
+    This is another obsolete area of COBOL statements. This part of
+    every statement also hails back to the day when programs were
+    punched on cards; it was expected that the name of the program (or
+    at least the first 8 characters of it) would be punched here so
+    that — if a dropped COBOL source deck contained more than one
+    program — that handy card sorter machine could be used to first
+    separate the cards by program name and then sort them by sequence
+    number. Today’s COBOL compilers (including GnuCOBOL) simply ignore
+    anything past column 72.
+
+
+*** DATA TYPES
+
+**** PICTURE picture-string
+
+     A picture-string is a sequence of the special symbols ‘$’, ‘*’,
+     ‘+’, ‘,’, ‘-’, ‘.’, ‘/’, ‘0’ (zero), ‘1’, ‘9’, ‘A’, ‘B’, CR, DB,
+     ‘S’, ‘V’, ‘X’ and ‘Z’.
+
+     'A’ - alphabetic character (‘A’-‘Z’, ‘a’-‘z’)
+
+     'N' - character in the computer’s National Character set. Support
+     for national character sets in GnuCOBOL is currently only
+     partially implemented, and the compile- and run-time effect of
+     using the ‘N’ picture symbol is the same as if X(2)
+
+     'X' - alphanumeric character (any character)
+
+     '9' - numeric digit character (‘0’-‘9’)
+
+     '1' - single bit representing a boolean condition with a states
+     of zero or 1, condition of off or on
+
+     'P' - Defines an implied digit position that will be considered
+     to be a zero when the data item is referenced at run-time. This
+     symbol is used to allow data items that will contain very large
+     values to be allocated using less storage by assuming a certain
+     number of trailing zeros (one per ‘P’) to exist at the end of
+     values.  The ‘P’ symbol is not allowed in conjunction with ‘N’.
+
+
+     'S' - This symbol, if used, must be the very first symbol in the
+     PICTURE value. A ‘S’ indicates that the data item is Signed,
+     meaning that negative values are possible for this data item.
+
+     'V' - This symbol is used to define where an implied
+     decimal-point (if any) is located in a numeric item. Just as
+     there may only be a single decimal point in a number so may there
+     be no more than one ‘V’ in a PICTURE.
+
+     'B' - The ‘B’ editing symbol introduces a blank into the field
+     value for each occurrence.
+
+     '0' - The ‘0’ (zero) editing symbol introduces one “0” character
+     into the field value for each occurrence in the picture string.
+
+     '/' - The ‘/’ editing symbol inserts one “/” character into the
+     field value for each occurrence in the picture string.
+
+     '.' - The ‘.’ symbol inserts a decimal point into a numeric field
+     value. When the contents of a numeric data item sending field are
+     moved into a receiving data item whose picture clause contains
+     the ‘.’ editing symbol, implied (‘V’) or actual decimal point in
+     the sending data item or literal, respectively, will be aligned
+     with the ‘.’ symbol in the receiving field. Digits are then
+     transferred from the sending to the receiving field outward from
+     the sending field’s ‘V’ or ‘.’, truncating sending digits if
+     there aren’t enough positions in the receiving field.  Any digit
+     positions in the receiving field that don’t receive digits from
+     the sending field, if any, will be set to 0.
+
+     ',' - The ‘,’ symbol serves as a thousands separator. Many times,
+     you’ll see large numbers formatted with these symbols — for
+     example, 123,456,789. This can be accomplished easily by adding
+     thousands separator symbols to a picture string. Thousands
+     separator symbols that aren’t needed will behave as if they were
+     ‘9’s.
+
+     '+' - If the value of the numeric value moved into the field is
+     positive (0 or greater), a ‘+’ character will be inserted. If the
+     value is negative (less than 0), a ‘-’ character is inserted.
+
+     '-' - If the value of the numeric value moved into the field is
+     positive (0 or greater), a space will be inserted. If the value
+     is negative (less than 0), a ‘-’ character is inserted.
+
+     CR - This symbol is coded as the two characters ‘C’ and ‘R’. If
+     the value of the numeric value moved into the field is positive
+     (0 or greater), two spaces will be inserted. If the value is
+     negative (less than 0), the characters CR (credit) are inserted.
+
+     DB - This symbol is coded as the two characters ‘D’ and ‘B’. If
+     the value of the numeric value moved into the field is positive
+     (0 or greater), two spaces will be inserted. If the value is
+     negative (less than 0), the characters DB (debit) are inserted.
+
+     '$' - Regardless of the value moved into the field, this symbol
+     will insert the currency symbol into the data item’s value in the
+     position where it occurs in the picture-string
+
+     
+
+** Files
+
+   *.cpy, *.cbl or *.cob extensions
+
+   First line needed
+
+     Free format.  The program-text area starts in column 1 and
+     continues till the end of line (effectively 255 characters in
+     GnuCOBOL).
+
+     Fixed format.  Source code is divided into: columns 1-6, the
+     sequence number area; column 7, the indicator area; columns 8-72,
+     the program-text area; and columns 72-80 as the reference area.(1)
+
+   ---------- Footnotes ----------
+
+   (1) Historically, fixed format was based on 80-character punch cards.
+
+
+   A file is divedid into 4 divisions
+   - IDENTIFICATION (optional)
+   - ENVIRONMENT (optional)
+   - DATA
+   - PROCEDURE
+
+
+   Hello world
+#+BEGIN_SRC cobol
+HELLO * COBOL source code snippet
+      IDENTIFICATION DIVISION.
+      PROGRAM-ID. Hello.
+      DATA DIVISION.
+      PROCEDURE DIVISION.
+      DISPLAY "Hello World!"
+      STOP RUN.
+#+END_SRC
+
+
+#+BEGIN_SRC cobol
+000100* HELLO.COB GnuCOBOL FAQ example
+000200 IDENTIFICATION DIVISION.
+000300 PROGRAM-ID. hello.
+000400 PROCEDURE DIVISION.
+000500     DISPLAY "Hello, world".
+000600     STOP RUN.
+#+END_SRC
+
+
+** cobc
+
+*** Compile options
+
+   '-free, -F', '-fixed' (default) switch; between free format and fixed format
+
+   '-o' outputfile
+
+   '-x' executable
+
+*** Examples
+
+    Multifile compilation
+
+    $ cobc -x -o prog main.cob subr1.cob subr2.cob
