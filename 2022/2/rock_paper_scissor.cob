@@ -4,7 +4,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F-input-FILE
-           ASSIGN TO "input"
+           ASSIGN TO WS-Filename
            ORGANIZATION IS LINE SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
@@ -15,11 +15,13 @@
           02 MyChoice PIC A(1).
 
        WORKING-STORAGE SECTION.
-       01 WS-Points1-TOTAL PIC 9(7) VALUE 0.
-       01 WS-Points2-TOTAL PIC 9(7) VALUE 0.
+       01 WS-Filename PIC X(20).
 
-       01 WS-EOF.
-         02 WS-EOF-BOOL PIC 9(1) VALUE 0.
+       LOCAL-STORAGE SECTION.
+       01 LS-Points1-TOTAL PIC 9(7) VALUE 0.
+       01 LS-Points2-TOTAL PIC 9(7) VALUE 0.
+
+       01 LS-EOF-BOOL PIC 9(1) VALUE 0.
 
       *    Points table part 1
       *    AB  X  Y  Z <- your choice
@@ -31,15 +33,15 @@
       *    A/X = Rock
       *    B/Y = Paper
       *    C/Z = Scissor
-       01 WS-points1-VALUES.
+       01 LS-points1-VALUES.
          02 PIC 9(3) VALUE "483".
          02 PIC 9(3) VALUE "159".
          02 PIC 9(3) VALUE "726".
 
-       01 WS-points1-TABLE REDEFINES WS-points1-VALUES.
-         02 WS-points1-ROWS OCCURS 3 TIMES INDEXED BY I.
-           03 WS-points1-COLS OCCURS 3 TIMES INDEXED BY J.
-             04 WS-points1 PIC 9(1).
+       01 LS-points1-TABLE REDEFINES LS-points1-VALUES.
+         02 LS-points1-ROWS OCCURS 3 TIMES INDEXED BY I.
+           03 LS-points1-COLS OCCURS 3 TIMES INDEXED BY J.
+             04 LS-points1 PIC 9(1).
 
       *    Points table part 2
       *    AB  X  Y  Z <- your choice
@@ -54,45 +56,52 @@
       *    X = Lose
       *    Y = Draw
       *    Z = Win
-       01 WS-points2-VALUES.
+       01 LS-points2-VALUES.
          02 PIC 9(3) VALUE "348".
          02 PIC 9(3) VALUE "159".
          02 PIC 9(3) VALUE "267".
 
-       01 WS-points2-TABLE REDEFINES WS-points2-VALUES.
-         02 WS-points2-ROWS OCCURS 3 TIMES INDEXED BY I.
-           03 WS-points2-COLS OCCURS 3 TIMES INDEXED BY J.
-             04 WS-points2 PIC 9(1).
+       01 LS-points2-TABLE REDEFINES LS-points2-VALUES.
+         02 LS-points2-ROWS OCCURS 3 TIMES INDEXED BY I.
+           03 LS-points2-COLS OCCURS 3 TIMES INDEXED BY J.
+             04 LS-points2 PIC 9(1).
 
-       LOCAL-STORAGE SECTION.
        01 LS-A-Choice PIC 9(1).
        01 LS-B-Choice PIC 9(1).
 
-       PROCEDURE DIVISION.
+       LINKAGE SECTION.
+       01 L-Filename PIC X(40).
+       01 L-Result-1 PIC 9(10).
+       01 L-Result-2 PIC 9(10).
+
+       PROCEDURE DIVISION USING L-Filename, L-Result-1, L-Result-2.
        MAIN-ROUTINE.
            PERFORM OPEN-FILE-ROUTINE.
-           PERFORM READ-LINE-ROUTINE UNTIL WS-EOF-BOOL = 1.
+           PERFORM READ-LINE-ROUTINE UNTIL LS-EOF-BOOL = 1.
            PERFORM CLOSE-FILE-ROUTINE.
-           PERFORM DISPLAY-RESULT-ROUTINE.
+           PERFORM MOVE-RESULT-ROUTINE.
+           EXIT PROGRAM.
            STOP RUN.
+       END-ROUTINE.
 
        OPEN-FILE-ROUTINE.
+           MOVE L-Filename TO WS-Filename.
            OPEN INPUT F-input-FILE.
        END-ROUTINE.
 
        READ-LINE-ROUTINE.
            READ F-input-FILE RECORD
-               AT END SET WS-EOF-BOOL TO 1
+               AT END SET LS-EOF-BOOL TO 1
                NOT AT END PERFORM DO-LINE-ROUTINE.
        END-ROUTINE.
 
        DO-LINE-ROUTINE.
            PERFORM SET-OPPONENT-ROUTINE.
            PERFORM SET-CONTESTANT-ROUTINE.
-           ADD WS-points1(LS-A-Choice, LS-B-Choice)
-               TO WS-Points1-TOTAL.
-           ADD WS-points2(LS-A-Choice, LS-B-Choice)
-               TO WS-Points2-TOTAL.
+           ADD LS-points1(LS-A-Choice, LS-B-Choice)
+               TO LS-Points1-TOTAL.
+           ADD LS-points2(LS-A-Choice, LS-B-Choice)
+               TO LS-Points2-TOTAL.
        END-ROUTINE.
 
        SET-OPPONENT-ROUTINE.
@@ -117,9 +126,9 @@
            END-EVALUATE.
        END-ROUTINE.
 
-       DISPLAY-RESULT-ROUTINE.
-           DISPLAY "Total points part 1: ", WS-Points1-TOTAL.
-           DISPLAY "Total points part 2: ", WS-Points2-TOTAL.
+       MOVE-RESULT-ROUTINE.
+           MOVE LS-Points1-TOTAL TO L-Result-1.
+           MOVE LS-Points2-TOTAL TO L-Result-2.
        END-ROUTINE.
 
        CLOSE-FILE-ROUTINE.

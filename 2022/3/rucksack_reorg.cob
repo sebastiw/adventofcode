@@ -4,7 +4,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F-input-FILE
-           ASSIGN TO "input"
+           ASSIGN TO WS-Filename
            ORGANIZATION IS LINE SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
@@ -13,14 +13,16 @@
        01 FileLine PIC A(80).
 
        WORKING-STORAGE SECTION.
+       01 WS-Filename PIC X(20).
+
        77 WS-Line-Len PIC 9(3).
 
-       01 WS-EOF-BOOL PIC 9(1) VALUE 0.
-
-       01 WS-priorities PIC 9(4) VALUE IS ZERO.
-       01 WS-badges PIC 9(4) VALUE IS ZERO.
-
        LOCAL-STORAGE SECTION.
+       01 LS-EOF-BOOL PIC 9(1) VALUE 0.
+
+       01 LS-priorities PIC 9(4) VALUE IS ZERO.
+       01 LS-badges PIC 9(4) VALUE IS ZERO.
+
        01 LS-Half-Len PIC 9(3).
        01 LS-HALF PIC A(80) OCCURS 3 TIMES.
 
@@ -40,21 +42,28 @@
        01 LS-Saved-Lines-COUNT PIC 9(1) VALUE IS ZERO.
        01 LS-Line PIC A(80) OCCURS 3 TIMES.
 
-       PROCEDURE DIVISION.
+       LINKAGE SECTION.
+       01 L-Filename PIC X(40).
+       01 L-Result-1 PIC 9(10) VALUE IS ZERO.
+       01 L-Result-2 PIC 9(10) VALUE IS ZERO.
+
+       PROCEDURE DIVISION USING L-Filename, L-Result-1, L-Result-2.
        MAIN-ROUTINE.
            PERFORM OPEN-FILE-ROUTINE.
-           PERFORM READ-LINE-ROUTINE UNTIL WS-EOF-BOOL = 1.
+           PERFORM READ-LINE-ROUTINE UNTIL LS-EOF-BOOL = 1.
            PERFORM CLOSE-FILE-ROUTINE.
-           PERFORM DISPLAY-RESULT-ROUTINE.
+           PERFORM MOVE-RESULT-ROUTINE.
+           EXIT PROGRAM.
            STOP RUN.
 
        OPEN-FILE-ROUTINE.
+           MOVE L-Filename TO WS-Filename.
            OPEN INPUT F-input-FILE.
        END-ROUTINE.
 
        READ-LINE-ROUTINE.
            READ F-input-FILE RECORD
-               AT END SET WS-EOF-BOOL TO 1
+               AT END SET LS-EOF-BOOL TO 1
                NOT AT END PERFORM DO-LINE-ROUTINE.
        END-ROUTINE.
 
@@ -105,7 +114,7 @@
                    VARYING LS-j FROM 1
                    UNTIL LS-j > 2.
            IF LS-FOUND-CNT = 2 THEN
-               ADD LS-i TO WS-priorities
+               ADD LS-i TO LS-priorities
                SET LS-FOUND-BOOL TO 1
            END-IF.
        END-ROUTINE.
@@ -116,7 +125,7 @@
                    VARYING LS-j FROM 1
                    UNTIL LS-j > 3.
            IF LS-FOUND-CNT = 3 THEN
-               ADD LS-i TO WS-badges
+               ADD LS-i TO LS-badges
                SET LS-FOUND-BOOL TO 1
            END-IF.
        END-ROUTINE.
@@ -141,9 +150,9 @@
            END-IF.
        END-ROUTINE.
 
-       DISPLAY-RESULT-ROUTINE.
-          DISPLAY "TOTAL priorities: ", WS-priorities.
-          DISPLAY "TOTAL badges: ", WS-badges.
+       MOVE-RESULT-ROUTINE.
+          MOVE LS-priorities TO L-Result-1.
+          MOVE LS-badges TO L-Result-2.
        END-ROUTINE.
 
        CLOSE-FILE-ROUTINE.

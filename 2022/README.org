@@ -278,7 +278,7 @@ files, data structures or procedural code.
      will insert the currency symbol into the data item’s value in the
      position where it occurs in the picture-string
 
-     
+
 
 ** Files
 

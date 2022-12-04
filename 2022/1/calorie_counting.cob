@@ -4,7 +4,7 @@
        INPUT-OUTPUT SECTION.
        FILE-CONTROL.
            SELECT F-input-FILE
-           ASSIGN TO "input"
+           ASSIGN TO WS-Filename
            ORGANIZATION IS LINE SEQUENTIAL.
        DATA DIVISION.
        FILE SECTION.
@@ -12,52 +12,61 @@
        01 FileLine PIC 9(10).
 
        WORKING-STORAGE SECTION.
-       01 WS-Elf-Sums-SORT
-          OCCURS 2256 TIMES
-          VALUES ARE ZEROES.
-          02 WS-Elf-Sums PIC 9(6).
-
-       01 WS-Elf-TOTAL PIC 9(7) VALUE 0.
-
-       01 WS-EOF.
-         02 WS-EOF-BOOL PIC 9(1) VALUE 0.
+       01 WS-Filename PIC X(20).
 
        LOCAL-STORAGE SECTION.
+       01 LS-EOF-BOOL PIC 9(1) VALUE 0.
+
        01 LS-Cal PIC 9(6).
 
        01 LS-Elf-IDX BINARY-LONG VALUE 1.
 
-       PROCEDURE DIVISION.
+       01 LS-Elf-Sums-SORT
+          OCCURS 2256 TIMES
+          VALUES ARE ZEROES.
+          02 LS-Elf-Sums PIC 9(6).
+
+       01 LS-Elf-TOTAL PIC 9(7) VALUE 0.
+
+       LINKAGE SECTION.
+       01 L-Filename PIC X(40).
+       01 L-Result-1 PIC 9(10) VALUE IS ZERO.
+       01 L-Result-2 PIC 9(10) VALUE IS ZERO.
+
+       PROCEDURE DIVISION USING L-Filename, L-Result-1, L-Result-2.
        MAIN-ROUTINE.
            PERFORM OPEN-FILE-ROUTINE.
-           PERFORM READ-LINE-ROUTINE UNTIL WS-EOF-BOOL = 1.
+           PERFORM READ-LINE-ROUTINE UNTIL LS-EOF-BOOL = 1.
            PERFORM CLOSE-FILE-ROUTINE.
-           PERFORM DISPLAY-RESULT-ROUTINE.
+           PERFORM MOVE-RESULT-ROUTINE.
+           EXIT PROGRAM.
            STOP RUN.
+       END-ROUTINE.
 
        OPEN-FILE-ROUTINE.
+           MOVE L-Filename TO WS-Filename.
            OPEN INPUT F-input-FILE.
        END-METHOD.
 
        READ-LINE-ROUTINE.
            READ F-input-FILE RECORD INTO LS-Cal
-               AT END SET WS-EOF-BOOL TO 1.
-           ADD LS-Cal to WS-Elf-Sums(LS-Elf-IDX)
+               AT END SET LS-EOF-BOOL TO 1
+               NOT AT END PERFORM DO-LINE-ROUTINE.
+       END-METHOD.
+
+       DO-LINE-ROUTINE.
+           ADD LS-Cal to LS-Elf-Sums(LS-Elf-IDX).
            IF LS-Cal = 0
                ADD 1 to LS-Elf-IDX
            END-IF.
        END-METHOD.
 
-       DISPLAY-RESULT-ROUTINE.
-           DISPLAY "Number of Elfs: ", LS-Elf-IDX.
-           SORT WS-Elf-Sums-SORT ON DESCENDING KEY WS-Elf-Sums.
-           DISPLAY "Top 3 Elfs carrying:"
-           DISPLAY "1: ", WS-Elf-Sums(1).
-           DISPLAY "2: ", WS-Elf-Sums(2).
-           DISPLAY "3: ", WS-Elf-Sums(3).
-           ADD WS-Elf-Sums(1) WS-Elf-Sums(2)
-               WS-Elf-Sums(3) TO WS-Elf-TOTAL.
-           DISPLAY "Amount: ", WS-Elf-TOTAL.
+       MOVE-RESULT-ROUTINE.
+           SORT LS-Elf-Sums-SORT ON DESCENDING KEY LS-Elf-Sums.
+           ADD LS-Elf-Sums(1) LS-Elf-Sums(2)
+               LS-Elf-Sums(3) TO LS-Elf-TOTAL.
+           MOVE LS-Elf-Sums(1) TO L-Result-1.
+           MOVE LS-Elf-TOTAL TO L-Result-2.
        END-METHOD.
 
        CLOSE-FILE-ROUTINE.
