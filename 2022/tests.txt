@@ -4,3 +4,5 @@
 2 rock_paper_scissor   input                          10310  14859
 3 rucksack_reorg       testinput                        157     70
 3 rucksack_reorg       input                           7967   2716
+4 camp_cleanup         testinput                          2      4
+4 camp_cleanup         input                            462    835
