@@ -6,3 +6,5 @@
 3 rucksack_reorg       input                           7967      2716
 4 camp_cleanup         testinput                          2         4
 4 camp_cleanup         input                            462       835
+5 supply_stacks        testinput                        CMZ       MCD
+5 supply_stacks        input                      RNZLFZSJH CNSFCGJSM
