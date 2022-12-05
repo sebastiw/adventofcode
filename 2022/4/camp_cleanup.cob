@@ -28,8 +28,8 @@
 
        LINKAGE SECTION.
        01 L-Filename PIC X(40) VALUE IS "testinput".
-       01 L-Result-1 PIC 9(10) VALUE IS ZERO.
-       01 L-Result-2 PIC 9(10) VALUE IS ZERO.
+       01 L-Result-1 PIC X(10) VALUE IS SPACE.
+       01 L-Result-2 PIC X(10) VALUE IS SPACE.
 
        PROCEDURE DIVISION USING L-Filename, L-Result-1, L-Result-2.
        MAIN-ROUTINE.
