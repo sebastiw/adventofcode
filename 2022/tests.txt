@@ -10,3 +10,5 @@
 5 supply_stacks        input                      RNZLFZSJH CNSFCGJSM
 6 tuning_trouble       testinput                          7        19
 6 tuning_trouble       input                           1929      3298
+7 linux_du             testinput                      95437  24933642
+7 linux_du             input                        1611443   2086088
