@@ -29,7 +29,7 @@
        77 WS-Line-Len PIC 9(3).
 
        01  RESPONSES.
-           05  RESPONSE-IN-WS  PIC X        VALUE "C".
+           05  RESPONSE-IN-WS  PIC X        VALUE " ".
 
        LOCAL-STORAGE SECTION.
        01 LS-Full-FileName PIC X(40).
@@ -65,9 +65,16 @@
 
        SCREEN SECTION.
        01  DATA-ENTRY-SCREEN.
-           05  ID-SECTION.
+           05  SUMMARY-ID-SECTION.
                10  VALUE "TEST RESULTS SCREEN"  BLANK SCREEN
                                               LINE 01 COL 30.
+           05  FAILURE-ID-SECTION.
+               10  VALUE "TEST RESULTS SCREEN"  BLANK SCREEN
+                                              LINE 01 COL 30.
+               10  VALUE "ID"                 LINE 05 COL 05.
+               10  VALUE "NAME"                       COL 10.
+               10  VALUE "INPUT"                      COL 35.
+
            05  RESULT-SECTION.
                10  VALUE "Results:"           LINE 04 COL 05.
                10  VALUE "ID"                 LINE 05 COL 05.
@@ -117,6 +124,7 @@
                        FROM LS-Result-2-IN.
 
            05  RESPONSE-SECTION.
+               10  VALUE "C - TO CONTINUE"    LINE 26 COL 30.
                10  VALUE "Q - TO QUIT"        LINE 27 COL 30.
                10  VALUE "ENTER CHOICE:"      LINE 29 COL 30.
                10  RESPONSE-SCR               LINE 29 COL 45
@@ -150,7 +158,7 @@
        END-ROUTINE.
 
        DISPLAY-RESULTS-ROUTINE.
-           IF LS-DisplayScreen = 1 THEN
+           IF LS-DisplayScreen = 0 THEN
                PERFORM DISPLAY-SCREEN-ROUTINE-LOOP
            ELSE
                PERFORM DISPLAY-TERM-ROUTINE
@@ -184,28 +192,47 @@
        END-ROUTINE.
 
        DISPLAY-SCREEN-ROUTINE-LOOP.
-           PERFORM DISPLAY-SCREEN-ROUTINE
-               UNTIL RESPONSE-IN-WS = "Q".
+           PERFORM DISPLAY-SUMMARY-SCREEN-ROUTINE
+               UNTIL RESPONSE-IN-WS = "Q" OR
+                     RESPONSE-IN-WS = "C".
            IF RESPONSE-IN-WS = "Q" THEN
                STOP RUN
+           ELSE IF RESPONSE-IN-WS = "C"
+               PERFORM DISPLAY-TC-FAILURE-SCREEN-ROUTINE
+                   UNTIL RESPONSE-IN-WS = "Q"
            END-IF.
        END-ROUTINE.
 
-       DISPLAY-SCREEN-ROUTINE.
-           DISPLAY ID-SECTION.
+       DISPLAY-SUMMARY-SCREEN-ROUTINE.
+           DISPLAY SUMMARY-ID-SECTION.
            DISPLAY RESULT-SECTION.
            PERFORM VARYING LS-i FROM 1
                    UNTIL LS-i > LS-Test-CNT
-               MOVE WS-DirName(LS-i) TO LS-DirName-IN
-               MOVE WS-FileName(LS-i) TO LS-FileName-IN
-               MOVE WS-Test-File(LS-i) TO LS-TestFile-IN
-               MOVE WS-Success(LS-i) TO LS-Success-IN
-               MOVE WS-Failure(LS-i) TO LS-Failure-IN
-               MOVE WS-Skipped(LS-i) TO LS-Skipped-IN
-               DISPLAY RESULT-TEST-SECTION
+                   MOVE WS-DirName(LS-i) TO LS-DirName-IN
+                   MOVE WS-FileName(LS-i) TO LS-FileName-IN
+                   MOVE WS-Test-File(LS-i) TO LS-TestFile-IN
+                   MOVE WS-Success(LS-i) TO LS-Success-IN
+                   MOVE WS-Failure(LS-i) TO LS-Failure-IN
+                   MOVE WS-Skipped(LS-i) TO LS-Skipped-IN
+                   DISPLAY RESULT-TEST-SECTION
+           END-PERFORM.
+           DISPLAY RESPONSE-SECTION.
+           ACCEPT RESPONSE-SCR.
+       END-ROUTINE.
+
+       DISPLAY-TC-FAILURE-SCREEN-ROUTINE.
+           DISPLAY FAILURE-ID-SECTION.
+           DISPLAY RESULT-SECTION.
+           PERFORM VARYING LS-i FROM 1
+                   UNTIL LS-i > LS-Test-CNT
                IF WS-Failure(LS-i) > 0 THEN
-                   *> DISPLAY EXPECTED-SECTION
-                   CONTINUE
+                   MOVE WS-DirName(LS-i) TO LS-DirName-IN
+                   MOVE WS-FileName(LS-i) TO LS-FileName-IN
+                   MOVE WS-Test-File(LS-i) TO LS-TestFile-IN
+                   MOVE WS-Success(LS-i) TO LS-Success-IN
+                   MOVE WS-Failure(LS-i) TO LS-Failure-IN
+                   MOVE WS-Skipped(LS-i) TO LS-Skipped-IN
+                   DISPLAY EXPECTED-SECTION
                END-IF
            END-PERFORM.
            DISPLAY RESPONSE-SECTION.
@@ -234,7 +261,9 @@
                     WS-Expected-Result-2(LS-Test-CNT).
 
            INITIALIZE LS-Full-FileName,
-                      LS-Full-TestName.
+                      LS-Full-TestName,
+                      LS-Result-1,
+                      LS-Result-2.
 
            STRING WS-DirName(LS-Test-CNT) DELIMITED BY SPACE,
                   '/' DELIMITED BY SIZE,
