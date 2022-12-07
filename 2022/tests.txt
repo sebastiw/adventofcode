@@ -8,3 +8,5 @@
 4 camp_cleanup         input                            462       835
 5 supply_stacks        testinput                        CMZ       MCD
 5 supply_stacks        input                      RNZLFZSJH CNSFCGJSM
+6 tuning_trouble       testinput                          7        19
+6 tuning_trouble       input                           1929      3298
