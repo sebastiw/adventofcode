@@ -12,3 +12,5 @@
 6 tuning_trouble       input                           1929      3298
 7 linux_du             testinput                      95437  24933642
 7 linux_du             input                        1611443   2086088
+8 treetop              testinput                         21         8
+8 treetop              input                           1785    345168
