@@ -14,3 +14,6 @@
 7 linux_du             input                        1611443   2086088
 8 treetop              testinput                         21         8
 8 treetop              input                           1785    345168
+9 rope                 testinput                         13         1
+9 rope                 testinput2                        88        36
+9 rope                 input                           5858      2602
