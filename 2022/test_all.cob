@@ -18,10 +18,10 @@
          02 WS-DirName PIC X(2).
          02 WS-FileName PIC X(60).
          02 WS-Test-File PIC X(40) VALUE IS "testinput".
-         02 WS-Expected-Result-1 PIC X(10) VALUE IS SPACE.
-         02 WS-Expected-Result-2 PIC X(10) VALUE IS SPACE.
-         02 WS-Result-1 PIC X(10) VALUE IS SPACE.
-         02 WS-Result-2 PIC X(10) VALUE IS SPACE.
+         02 WS-Expected-Result-1 PIC X(15) VALUE IS SPACE.
+         02 WS-Expected-Result-2 PIC X(15) VALUE IS SPACE.
+         02 WS-Result-1 PIC X(15) VALUE IS SPACE.
+         02 WS-Result-2 PIC X(15) VALUE IS SPACE.
          02 WS-Skipped PIC 9(2) VALUE IS ZERO.
          02 WS-Success PIC 9(2) VALUE IS ZERO.
          02 WS-Failure PIC 9(2) VALUE IS ZERO.
@@ -39,15 +39,15 @@
        01 LS-j PIC 9(2) VALUE IS ZERO.
        01 LS-ARGS-CNT PIC 9 VALUE IS ZERO.
        01 LS-ALL-ARGS.
-          02 LS-ARGS PIC X(10) OCCURS 1 TO 9 TIMES
+          02 LS-ARGS PIC X(15) OCCURS 1 TO 9 TIMES
                                         DEPENDING ON LS-ARGS-CNT.
 
        01 LS-i PIC 9(2) VALUE IS ZERO.
        01 LS-Test-CNT PIC 9(2) VALUE IS ZERO.
 
        01 LS-garbage-CNT PIC 9(2) VALUE IS ZERO.
-       01 LS-Result-1 PIC X(10) VALUE IS SPACE.
-       01 LS-Result-2 PIC X(10) VALUE IS SPACE.
+       01 LS-Result-1 PIC X(15) VALUE IS SPACE.
+       01 LS-Result-2 PIC X(15) VALUE IS SPACE.
 
        01 LS-DirName-IN PIC X(2) VALUE IS SPACE.
        01 LS-FileName-IN PIC X(60) VALUE IS SPACE.
@@ -55,10 +55,10 @@
        01 LS-Skipped-IN PIC 9(2) VALUE IS ZERO.
        01 LS-Success-IN PIC 9(2) VALUE IS ZERO.
        01 LS-Failure-IN PIC 9(2) VALUE IS ZERO.
-       01 LS-Expected-Result-1-IN PIC X(10) VALUE IS SPACE.
-       01 LS-Expected-Result-2-IN PIC X(10) VALUE IS SPACE.
-       01 LS-Result-1-IN PIC X(10) VALUE IS SPACE.
-       01 LS-Result-2-IN PIC X(10) VALUE IS SPACE.
+       01 LS-Expected-Result-1-IN PIC X(15) VALUE IS SPACE.
+       01 LS-Expected-Result-2-IN PIC X(15) VALUE IS SPACE.
+       01 LS-Result-1-IN PIC X(15) VALUE IS SPACE.
+       01 LS-Result-2-IN PIC X(15) VALUE IS SPACE.
 
        01 LS-SET-ARGS.
          02 LS-DisplayScreen PIC X(1) VALUE IS ZERO.
@@ -104,18 +104,18 @@
                10  VALUE "Expected:"      LINE PLUS 1 COL 07.
                10  EXPECTED-ON-SCR-IN                 COL 17
                        FOREGROUND-COLOR IS 1
-                       PIC X(10)
+                       PIC X(15)
                        USING LS-Expected-Result-1-IN.
                10  VALUE "Actual:"        LINE PLUS 1 COL 07.
                10  ACTUAL-ON-SCR-IN                   COL 17
                        FOREGROUND-COLOR IS 3
-                       PIC X(10)
+                       PIC X(15)
                        FROM LS-Result-1-IN.
                10  VALUE "TEST 2"         LINE PLUS 1 COL 05.
                10  VALUE "Expected:"      LINE PLUS 1 COL 07.
                10  EXPECTED-ON-SCR-IN                 COL 17
                        FOREGROUND-COLOR IS 1
-                       PIC X(10)
+                       PIC X(15)
                        USING LS-Expected-Result-2-IN.
                10  VALUE "Actual:"        LINE PLUS 1 COL 07.
                10  ACTUAL-ON-SCR-IN                   COL 17
@@ -158,7 +158,7 @@
        END-ROUTINE.
 
        DISPLAY-RESULTS-ROUTINE.
-           IF LS-DisplayScreen = 0 THEN
+           IF LS-DisplayScreen = 1 THEN
                PERFORM DISPLAY-SCREEN-ROUTINE-LOOP
            ELSE
                PERFORM DISPLAY-TERM-ROUTINE
@@ -302,6 +302,8 @@
                    WS-Result-1(LS-Test-CNT) THEN
                ADD 1 TO WS-Success(LS-Test-CNT)
            ELSE
+               DISPLAY "EXP: ", WS-Expected-Result-1(LS-Test-CNT)
+               DISPLAY "ACT: ", WS-Result-1(LS-Test-CNT)
                ADD 1 TO WS-Failure(LS-Test-CNT)
            END-IF.
            IF WS-Expected-Result-2(LS-Test-CNT) = " " THEN

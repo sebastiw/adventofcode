@@ -1,3 +1,5 @@
+11 monkey               input                         120056 21816744824
+11 monkey               testinput                      10605  2713310158
 10 crt                  input                          13180
 10 crt                  testinput                      13140
 9  rope                 input                           5858      2602
