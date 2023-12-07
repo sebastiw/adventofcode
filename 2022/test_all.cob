@@ -124,10 +124,10 @@
                        FROM LS-Result-2-IN.
 
            05  RESPONSE-SECTION.
-               10  VALUE "C - TO CONTINUE"    LINE 26 COL 30.
-               10  VALUE "Q - TO QUIT"        LINE 27 COL 30.
-               10  VALUE "ENTER CHOICE:"      LINE 29 COL 30.
-               10  RESPONSE-SCR               LINE 29 COL 45
+               10  VALUE "C - TO CONTINUE"    LINE 36 COL 30.
+               10  VALUE "Q - TO QUIT"        LINE 37 COL 30.
+               10  VALUE "ENTER CHOICE:"      LINE 39 COL 30.
+               10  RESPONSE-SCR               LINE 39 COL 45
                        PIC X     TO RESPONSE-IN-WS.
 
        PROCEDURE DIVISION.
@@ -158,7 +158,7 @@
        END-ROUTINE.
 
        DISPLAY-RESULTS-ROUTINE.
-           IF LS-DisplayScreen = 1 THEN
+           IF LS-DisplayScreen = 0 THEN
                PERFORM DISPLAY-SCREEN-ROUTINE-LOOP
            ELSE
                PERFORM DISPLAY-TERM-ROUTINE
