@@ -2,3 +2,4 @@ id.org
 *.out
 *.md
 *.so
+ebin/
